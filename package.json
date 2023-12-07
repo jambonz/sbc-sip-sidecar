@@ -28,11 +28,12 @@
   "homepage": "https://github.com/jambonz/sbc-sip-sidecar#readme",
   "dependencies": {
     "@jambonz/db-helpers": "^0.9.1",
+    "@jambonz/digest-utils": "^0.0.3",
     "@jambonz/mw-registrar": "^0.2.4",
     "@jambonz/realtimedb-helpers": "^0.8.7",
     "@jambonz/stats-collector": "^0.1.9",
     "@jambonz/time-series": "^0.2.5",
-    "@jambonz/digest-utils": "^0.0.3",
+    "cidr-matcher": "^2.1.1",
     "debug": "^4.3.4",
     "drachtio-mw-registration-parser": "^0.1.0",
     "drachtio-mw-response-time": "^1.0.2",
