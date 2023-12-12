@@ -158,6 +158,8 @@ srf.on('connect', (err, hp) => {
 
   /* start regbot */
   require('./lib/sip-trunk-register')(logger, srf);
+  // Start Options bot
+  require('./lib/sip-trunk-options-ping')(logger, srf);
 });
 
 if (process.env.NODE_ENV === 'test') {
