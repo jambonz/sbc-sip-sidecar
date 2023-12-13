@@ -87,6 +87,7 @@ srf.locals = {
     lookupCarrierBySid
   },
   realtimeDbHelpers: {
+    client,
     addKey,
     addKeyNx,
     retrieveKey,
