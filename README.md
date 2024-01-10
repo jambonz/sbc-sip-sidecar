@@ -26,6 +26,8 @@ Configuration is provided via environment variables:
 |EXPIRES_INTERVAL| servers expire |no|
 |JWT_SECRET| secret for signing JWT token |yes|
 |ENCRYPTION_SECRET| secret for credential encryption(JWT_SECRET is deprecated) |yes|
+|JAMBONES_REGBOT_DEFAULT_EXPIRES_INTERVAL| default expire value for outbound registration in seconds (default 3600) |no|
+|JAMBONES_REGBOT_MIN_EXPIRES_INTERVAL| minimum expire value for outbound registration in seconds (default 30) |no|
 
 ## Registrar database
 
