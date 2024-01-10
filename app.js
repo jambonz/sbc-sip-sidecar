@@ -52,7 +52,10 @@ const {
   addSbcAddress,
   cleanSbcAddresses,
   updateVoipCarriersRegisterStatus,
-  lookupClientByAccountAndUsername
+  lookupClientByAccountAndUsername,
+  lookupSipGatewaysByFilters,
+  updateSipGatewayBySid,
+  lookupCarrierBySid
 } = require('@jambonz/db-helpers')({
   host: JAMBONES_MYSQL_HOST,
   user: JAMBONES_MYSQL_USER,
@@ -96,9 +99,13 @@ srf.locals = {
     lookupAccountBySipRealm,
     lookupAccountCapacitiesBySid,
     updateVoipCarriersRegisterStatus,
-    lookupClientByAccountAndUsername
+    lookupClientByAccountAndUsername,
+    lookupSipGatewaysByFilters,
+    updateSipGatewayBySid,
+    lookupCarrierBySid
   },
   realtimeDbHelpers: {
+    client,
     addKey,
     addKeyNx,
     retrieveKey,
@@ -170,6 +177,8 @@ srf.on('connect', (err, hp) => {
 
   /* start regbot */
   require('./lib/sip-trunk-register')(logger, srf);
+  // Start Options bot
+  require('./lib/sip-trunk-options-ping')(logger, srf);
 });
 
 if (NODE_ENV === 'test') {
