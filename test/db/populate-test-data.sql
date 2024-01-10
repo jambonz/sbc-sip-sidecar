@@ -15,7 +15,7 @@ values ('ed649e33-e771-403a-8c99-1780eabbc803', '3f35518f-5a0d-4c2e-90a5-2407bb3
 insert into account_subscriptions(account_subscription_sid, account_sid, pending)
 values ('f4e1848d-3ff8-40eb-b9c1-30e1ef053f94','ed649e33-e771-403a-8c99-1780eabbc803',0);
 insert into account_products(account_product_sid, account_subscription_sid, product_sid,quantity)
-values ('f23ff996-6534-4aba-8666-4b347391eca2', 'f4e1848d-3ff8-40eb-b9c1-30e1ef053f94', '2c815913-5c26-4004-b748-183b459329df', 1);
+values ('f23ff996-6534-4aba-8666-4b347391eca2', 'f4e1848d-3ff8-40eb-b9c1-30e1ef053f94', '2c815913-5c26-4004-b748-183b459329df', 2);
 insert into account_products(account_product_sid, account_subscription_sid, product_sid,quantity)
 values ('f23ff997-6534-4aba-8666-4b347391eca2', 'f4e1848d-3ff8-40eb-b9c1-30e1ef053f94', 'c4403cdb-8e75-4b27-9726-7d8315e3216d', 20);
 

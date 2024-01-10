@@ -1,8 +1,33 @@
 # sbc-sip-sidecar ![Build Status](https://github.com/jambonz/sbc-sip-sidecar/workflows/CI/badge.svg)
 
-This application provides a part of the SBC (Session Border Controller) functionality of jambonz. It handles incoming/outgoing REGISTER requests from/to clients/servers (including both sip softphones and WebRTC client applications), incoming OPTIONS. Register Authentication is delegated to customer-side logic via a web callback configured for the account in the jambonz database.  Information about active registrations is stored in a redis database.
+This application provides a part of the SBC (Session Border Controller) functionality of jambonz platform. It handles incoming/outgoing REGISTER requests from/to clients/servers (including both sip softphones and WebRTC client applications), incoming OPTIONS. Register Authentication is delegated to customer-side logic via a web callback configured for the account in the jambonz database.  Information about active registrations is stored in a redis database.
 
-## registrar database
+## Configuration
+
+Configuration is provided via environment variables:
+
+| variable | meaning | required?|
+|----------|----------|---------|
+|DRACHTIO_HOST| ip address of drachtio server (typically '127.0.0.1')|yes|
+|DRACHTIO_PORT| listening port of drachtio server for control connections (typically 9022)|yes|
+|DRACHTIO_SECRET| shared secret|yes|
+|JAMBONES_LOGLEVEL| log level for application, 'info' or 'debug'|no|
+|JAMBONES_MYSQL_HOST| mysql host|yes|
+|JAMBONES_MYSQL_USER| mysql username|yes|
+|JAMBONES_MYSQL_PASSWORD|  mysql password|yes|
+|JAMBONES_MYSQL_DATABASE| mysql data|yes|
+|JAMBONES_MYSQL_PORT| mysql port |no|
+|JAMBONES_MYSQL_CONNECTION_LIMIT| mysql connection limit |no|
+|JAMBONES_CLUSTER_ID| cluster id |no|
+|JAMBONES_REDIS_HOST| redis host|yes|
+|JAMBONES_REDIS_PORT|redis port|no|
+|JAMBONES_TIME_SERIES_HOST| influxdb host |yes|
+|CHECK_EXPIRES_INTERVAL| servers expiration check interval |no|
+|EXPIRES_INTERVAL| servers expire |no|
+|JWT_SECRET| secret for signing JWT token |yes|
+|ENCRYPTION_SECRET| secret for credential encryption(JWT_SECRET is deprecated) |yes|
+
+## Registrar database
 
 A redis database is used to hold active registrations. When a register request arrives and is authenticated, the following values are parsed from the request:
 - the address of record, or "aor" (e.g, daveh@drachtio.org),
@@ -19,39 +44,6 @@ A hash value is created from these values and stored with an expiry value equal 
 The hash value is inserted with a key being the aor:
 ```
 aor => {contact, source, protocol, sbcAddress, call_hook, call_status_hook}, expiry = registration expires value
-```
-
-## configuration
-
-Configuration is provided via the [npmjs config](https://www.npmjs.com/package/config) package.  The following elements make up the configuration for the application:
-##### drachtio server location
-```
-{
-  "drachtio": {
-    "port": 3001,
-    "secret": "cymru"
-  },
-```
-the `drachtio` object specifies the port to listen on for tcp connections from drachtio servers as well as the shared secret that is used to authenticate to the server.
-
-> Note: [outbound connections](https://drachtio.org/docs#outbound-connections) are used for all drachtio applications in jambonz, to allow for easier centralization and clustering of application logic.
-
-##### redis server location
-```
-  "redis": {
-    "port": 6379,
-    "host": "127.0.0.1"
-  },
-```
-the `redis` object specifies the location of the redis database.  Any of the options [defined here](https://www.npmjs.com/package/redis#rediscreateclient) may be supplied, but host and port are minimally required.  
-
-Note that in a fully-scaled out environment with multiple SBCs there will be one centralized redis database (or cluster) that stores registrations for all SBCs.
-
-##### application log level
-```
-  "logging": {
-    "level": "info"
-  }
 ```
 
 ## http callback

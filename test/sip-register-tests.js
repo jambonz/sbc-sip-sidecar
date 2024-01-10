@@ -40,6 +40,19 @@ test('register tests', (t) => {
     })
     .then(() => {
       t.pass('successfully registered when using valid credentials (service provider level auth hook)');
+      return sippUac('uac-re-register-auth-success.xml', sippRegObj);
+    })
+    .then(() => {
+      t.pass('successfully re-registered against cached registration');
+      sippRegObj.data_file = 'good_user2.csv';
+      return sippUac('uac-register-auth-success-jane.xml', sippRegObj);
+    })
+    .then(() => {
+      t.pass('successfully registered against short expiry');
+      return sippUac('uac-register-auth-success-jane.xml', sippRegObj);
+    })
+    .then(() => {
+      t.pass('successfully re-registered against short registration with re-auth');
       if (srf.locals.lb) srf.locals.lb.disconnect();
       srf.disconnect();
       t.end();

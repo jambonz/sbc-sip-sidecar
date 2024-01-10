@@ -1,6 +1,6 @@
 {
   "name": "sbc-sip-sidecar",
-  "version": "0.7.7",
+  "version": "0.8.5",
   "description": "SBC SIP sidecar app (handles REGISTER and OPTIONS)",
   "main": "app.js",
   "engines": {
@@ -12,31 +12,31 @@
   ],
   "scripts": {
     "start": "node app",
-    "test": "NODE_ENV=test JAMBONES_HOSTING=1 HTTP_POOL=1 DRACHTIO_HOST=127.0.0.1 DRACHTIO_PORT=9022 DRACHTIO_SECRET=cymru JAMBONES_MYSQL_HOST=127.0.0.1 JAMBONES_MYSQL_PORT=3306 JAMBONES_MYSQL_USER=jambones_test JAMBONES_MYSQL_PASSWORD=jambones_test JAMBONES_MYSQL_DATABASE=jambones_test JAMBONES_REDIS_HOST=127.0.0.1 JAMBONES_REDIS_PORT=16379 JAMBONES_LOGLEVEL=error ENABLE_METRICS=0 HTTP_PORT=3000 JAMBONES_SBCS=172.39.0.10 JAMBONES_FREESWITCH=127.0.0.1:8022:ClueCon:docker-host JAMBONES_TIME_SERIES_HOST=127.0.0.1 JAMBONES_NETWORK_CIDR=172.39.0.0/16 node test/ ",
+    "test": "NODE_ENV=test JAMBONES_HOSTING=1 HTTP_POOL=1 JWT_SECRET=foobarbazzle DRACHTIO_HOST=127.0.0.1 DRACHTIO_PORT=9022 DRACHTIO_SECRET=cymru JAMBONES_MYSQL_HOST=127.0.0.1 JAMBONES_MYSQL_PORT=3306 JAMBONES_MYSQL_USER=jambones_test JAMBONES_MYSQL_PASSWORD=jambones_test JAMBONES_MYSQL_DATABASE=jambones_test JAMBONES_REDIS_HOST=127.0.0.1 JAMBONES_REDIS_PORT=16379 JAMBONES_LOGLEVEL=error ENABLE_METRICS=0 HTTP_PORT=3000 JAMBONES_SBCS=172.39.0.10 JAMBONES_FREESWITCH=127.0.0.1:8022:ClueCon:docker-host JAMBONES_TIME_SERIES_HOST=127.0.0.1 JAMBONES_NETWORK_CIDR=172.39.0.0/16 node test/ ",
     "coverage": "./node_modules/.bin/nyc --reporter html --report-dir ./coverage npm run test",
     "jslint": "eslint app.js lib"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xquanluu/sbc-outbound-handler.git"
+    "url": "git+https://github.com/jambonz/sbc-sip-sidecar.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/xquanluu/sbc-outbound-handler/issues"
+    "url": "https://github.com/jambonz/sbc-sip-sidecar/issues"
   },
-  "homepage": "https://github.com/xquanluu/sbc-outbound-handler#readme",
+  "homepage": "https://github.com/jambonz/sbc-sip-sidecar#readme",
   "dependencies": {
-    "@jambonz/db-helpers": "^0.7.3",
-    "@jambonz/http-authenticator": "^0.2.2",
-    "@jambonz/mw-registrar": "^0.2.2",
-    "@jambonz/realtimedb-helpers": "^0.4.34",
-    "@jambonz/stats-collector": "^0.1.6",
+    "@jambonz/db-helpers": "^0.9.1",
+    "@jambonz/mw-registrar": "^0.2.4",
+    "@jambonz/realtimedb-helpers": "^0.8.7",
+    "@jambonz/stats-collector": "^0.1.9",
     "@jambonz/time-series": "^0.2.5",
+    "@jambonz/digest-utils": "^0.0.4",
     "debug": "^4.3.4",
     "drachtio-mw-registration-parser": "^0.1.0",
     "drachtio-mw-response-time": "^1.0.2",
-    "drachtio-srf": "^4.5.17",
+    "drachtio-srf": "^4.5.31",
     "pino": "^6.14.0",
     "short-uuid": "^4.2.2"
   },
@@ -44,6 +44,7 @@
     "clear-module": "^4.1.2",
     "eslint": "^7.32.0",
     "eslint-plugin-promise": "^4.3.1",
+    "nyc": "^15.1.0",
     "tape": "^4.15.1"
   }
 }
