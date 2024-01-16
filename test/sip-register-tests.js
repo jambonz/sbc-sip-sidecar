@@ -25,6 +25,10 @@ test('register tests', (t) => {
 
   connect(srf)
     .then(() => {
+      sippRegObj.data_file = 'deactivated_account_user.csv';
+      return sippUac('uac-register-unknown-realm.xml', sippRegObj);
+    })
+    .then(() => {
       sippRegObj.data_file = 'bad_realm.csv';
       return sippUac('uac-reject-ipv4-realm.xml', sippRegObj);
     })
