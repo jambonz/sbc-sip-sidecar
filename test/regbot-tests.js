@@ -1,17 +1,23 @@
 const test = require('tape');
+const {
+  JAMBONES_REDIS_HOST,
+  JAMBONES_REDIS_PORT,
+  JAMBONES_LOGLEVEL,
+  JAMBONES_CLUSTER_ID,
+} = require('./config');
 const clearModule = require('clear-module');
 const exec = require('child_process').exec;
 const opts = Object.assign({
   timestamp: () => { return `, "time": "${new Date().toISOString()}"`; }
-}, { level: process.env.JAMBONES_LOGLEVEL || 'info' });
+}, { level:JAMBONES_LOGLEVEL || 'info' });
 const logger = require('pino')(opts);
 const {
   addToSet,
   removeFromSet } = require('@jambonz/realtimedb-helpers')({
-    host: process.env.JAMBONES_REDIS_HOST || 'localhost',
-    port: process.env.JAMBONES_REDIS_PORT || 6379
+    host: JAMBONES_REDIS_HOST || 'localhost',
+    port: JAMBONES_REDIS_PORT || 6379
   }, logger);
-const setName = `${(process.env.JAMBONES_CLUSTER_ID || 'default')}:active-sip`;
+const setName = `${(JAMBONES_CLUSTER_ID || 'default')}:active-sip`;
 
 process.on('unhandledRejection', (reason, p) => {
   console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
@@ -124,7 +130,7 @@ test('trunk register with sbc public IP address', (t) => {
   clearModule.all();
   const { srf } = require('../app');
   t.timeoutAfter(60000);
-  process.env.JAMBONES_REGBOT_CONTACT_USE_IP = true;
+  JAMBONES_REGBOT_CONTACT_USE_IP = true;
   addToSet(setName, "172.39.0.10:5060");
 
   connect(srf)

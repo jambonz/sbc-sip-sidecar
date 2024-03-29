@@ -1,20 +1,38 @@
 const assert = require('assert');
-assert.ok(process.env.JAMBONES_MYSQL_HOST &&
-  process.env.JAMBONES_MYSQL_USER &&
-  process.env.JAMBONES_MYSQL_PASSWORD &&
-  process.env.JAMBONES_MYSQL_DATABASE, 'missing JAMBONES_MYSQL_XXX env vars');
-if (process.env.JAMBONES_REDIS_SENTINELS) {
-  assert.ok(process.env.JAMBONES_REDIS_SENTINEL_MASTER_NAME,
+const {
+  JAMBONES_MYSQL_HOST,
+  JAMBONES_MYSQL_USER,
+  JAMBONES_MYSQL_PASSWORD,
+  JAMBONES_MYSQL_DATABASE,
+  JAMBONES_REDIS_SENTINEL_MASTER_NAME,
+  JAMBONES_REDIS_SENTINELS,
+  JAMBONES_REDIS_HOST,
+  DRACHTIO_HOST,
+  DRACHTIO_PORT,
+  DRACHTIO_SECRET,
+  JAMBONES_TIME_SERIES_HOST,
+  JAMBONES_LOGLEVEL,
+  JAMBONES_MYSQL_PORT,
+  JAMBONES_MYSQL_CONNECTION_LIMIT,
+  NODE_ENV,
+  SBC_PUBLIC_ADDRESS_KEEP_ALIVE_IN_MILISECOND
+} = require('./lib/config');
+assert.ok(JAMBONES_MYSQL_HOST &&
+  JAMBONES_MYSQL_USER &&
+  JAMBONES_MYSQL_PASSWORD &&
+  JAMBONES_MYSQL_DATABASE, 'missing JAMBONES_MYSQL_XXX env vars');
+if (JAMBONES_REDIS_SENTINELS) {
+  assert.ok(JAMBONES_REDIS_SENTINEL_MASTER_NAME,
     'missing JAMBONES_REDIS_SENTINEL_MASTER_NAME env var, JAMBONES_REDIS_SENTINEL_PASSWORD env var is optional');
 } else {
-  assert.ok(process.env.JAMBONES_REDIS_HOST, 'missing JAMBONES_REDIS_HOST env var');
+  assert.ok(JAMBONES_REDIS_HOST, 'missing JAMBONES_REDIS_HOST env var');
 }
-assert.ok(process.env.DRACHTIO_HOST, 'missing DRACHTIO_HOST env var');
-assert.ok(process.env.DRACHTIO_PORT, 'missing DRACHTIO_PORT env var');
-assert.ok(process.env.DRACHTIO_SECRET, 'missing DRACHTIO_SECRET env var');
-assert.ok(process.env.JAMBONES_TIME_SERIES_HOST, 'missing JAMBONES_TIME_SERIES_HOST env var');
+assert.ok(DRACHTIO_HOST, 'missing DRACHTIO_HOST env var');
+assert.ok(DRACHTIO_PORT, 'missing DRACHTIO_PORT env var');
+assert.ok(DRACHTIO_SECRET, 'missing DRACHTIO_SECRET env var');
+assert.ok(JAMBONES_TIME_SERIES_HOST, 'missing JAMBONES_TIME_SERIES_HOST env var');
 
-const logger = require('pino')({ level: process.env.JAMBONES_LOGLEVEL || 'info' });
+const logger = require('pino')({ level: JAMBONES_LOGLEVEL || 'info' });
 const Srf = require('drachtio-srf');
 const srf = new Srf();
 const StatsCollector = require('@jambonz/stats-collector');
@@ -39,20 +57,20 @@ const {
   updateSipGatewayBySid,
   lookupCarrierBySid
 } = require('@jambonz/db-helpers')({
-  host: process.env.JAMBONES_MYSQL_HOST,
-  user: process.env.JAMBONES_MYSQL_USER,
-  port: process.env.JAMBONES_MYSQL_PORT || 3306,
-  password: process.env.JAMBONES_MYSQL_PASSWORD,
-  database: process.env.JAMBONES_MYSQL_DATABASE,
-  connectionLimit: process.env.JAMBONES_MYSQL_CONNECTION_LIMIT || 10
+  host: JAMBONES_MYSQL_HOST,
+  user: JAMBONES_MYSQL_USER,
+  port: JAMBONES_MYSQL_PORT || 3306,
+  password: JAMBONES_MYSQL_PASSWORD,
+  database: JAMBONES_MYSQL_DATABASE,
+  connectionLimit: JAMBONES_MYSQL_CONNECTION_LIMIT || 10
 }, logger);
 const {
   writeAlerts,
   AlertType
 } = require('@jambonz/time-series')(logger, {
-  host: process.env.JAMBONES_TIME_SERIES_HOST,
+  host: JAMBONES_TIME_SERIES_HOST,
   commitSize: 50,
-  commitInterval: 'test' === process.env.NODE_ENV ? 7 : 20
+  commitInterval: 'test' === NODE_ENV ? 7 : 20
 });
 
 const {
@@ -66,7 +84,7 @@ const {
   retrieveSet
 } = require('@jambonz/realtimedb-helpers')({}, logger);
 
-const interval = process.env.SBC_PUBLIC_ADDRESS_KEEP_ALIVE_IN_MILISECOND || 900000; // Default 15 minutes
+const interval = SBC_PUBLIC_ADDRESS_KEEP_ALIVE_IN_MILISECOND || 900000; // Default 15 minutes
 
 srf.locals = {
   ...srf.locals,
@@ -97,7 +115,7 @@ srf.locals = {
   AlertType
 };
 
-srf.connect({ host: process.env.DRACHTIO_HOST, port: process.env.DRACHTIO_PORT, secret: process.env.DRACHTIO_SECRET });
+srf.connect({ host: DRACHTIO_HOST, port: DRACHTIO_PORT, secret: DRACHTIO_SECRET });
 srf.on('connect', (err, hp) => {
   if (err) return logger.error({ err }, 'Error connecting to drachtio server');
   logger.info(`connected to drachtio listening on ${hp}`);
@@ -163,7 +181,7 @@ srf.on('connect', (err, hp) => {
   require('./lib/sip-trunk-options-ping')(logger, srf);
 });
 
-if (process.env.NODE_ENV === 'test') {
+if (NODE_ENV === 'test') {
   srf.on('error', (err) => {
     logger.info(err, 'Error connecting to drachtio');
   });
