@@ -1,4 +1,5 @@
 /* SQLEditor (MySQL (2))*/
+
 SET FOREIGN_KEY_CHECKS=0;
 
 DROP TABLE IF EXISTS account_static_ips;
@@ -52,6 +53,8 @@ DROP TABLE IF EXISTS service_provider_limits;
 DROP TABLE IF EXISTS signup_history;
 
 DROP TABLE IF EXISTS smpp_addresses;
+
+DROP TABLE IF EXISTS google_custom_voices;
 
 DROP TABLE IF EXISTS speech_credentials;
 
@@ -135,7 +138,10 @@ client_sid CHAR(36) NOT NULL UNIQUE ,
 account_sid CHAR(36) NOT NULL,
 is_active BOOLEAN NOT NULL DEFAULT 1,
 username VARCHAR(64),
-password VARCHAR(64),
+password VARCHAR(1024),
+allow_direct_app_calling BOOLEAN NOT NULL DEFAULT 1,
+allow_direct_queue_calling BOOLEAN NOT NULL DEFAULT 1,
+allow_direct_user_calling BOOLEAN NOT NULL DEFAULT 1,
 PRIMARY KEY (client_sid)
 );
 
@@ -334,7 +340,18 @@ last_tested DATETIME,
 tts_tested_ok BOOLEAN,
 stt_tested_ok BOOLEAN,
 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+label VARCHAR(64),
 PRIMARY KEY (speech_credential_sid)
+);
+
+CREATE TABLE google_custom_voices
+(
+google_custom_voice_sid CHAR(36) NOT NULL UNIQUE ,
+speech_credential_sid CHAR(36) NOT NULL,
+model VARCHAR(512) NOT NULL,
+reported_usage ENUM('REPORTED_USAGE_UNSPECIFIED','REALTIME','OFFLINE') DEFAULT 'REALTIME',
+name VARCHAR(64) NOT NULL,
+PRIMARY KEY (google_custom_voice_sid)
 );
 
 CREATE TABLE system_information
@@ -377,6 +394,7 @@ service_provider_sid CHAR(36),
 application_sid CHAR(36) COMMENT 'If provided, all incoming calls from this source will be routed to the associated application',
 e164_leading_plus BOOLEAN NOT NULL DEFAULT false COMMENT 'if true, a leading plus should be prepended to outbound phone numbers',
 requires_register BOOLEAN NOT NULL DEFAULT false,
+register_use_tls BOOLEAN NOT NULL DEFAULT false,
 register_username VARCHAR(64),
 register_sip_realm VARCHAR(64),
 register_password VARCHAR(64),
@@ -436,11 +454,13 @@ CREATE TABLE sip_gateways
 sip_gateway_sid CHAR(36),
 ipv4 VARCHAR(128) NOT NULL COMMENT 'ip address or DNS name of the gateway.  For gateways providing inbound calling service, ip address is required.',
 netmask INTEGER NOT NULL DEFAULT 32,
-port INTEGER NOT NULL DEFAULT 5060 COMMENT 'sip signaling port',
+port INTEGER COMMENT 'sip signaling port',
 inbound BOOLEAN NOT NULL COMMENT 'if true, whitelist this IP to allow inbound calls from the gateway',
 outbound BOOLEAN NOT NULL COMMENT 'if true, include in least-cost routing when placing calls to the PSTN',
 voip_carrier_sid CHAR(36) NOT NULL,
 is_active BOOLEAN NOT NULL DEFAULT 1,
+send_options_ping BOOLEAN NOT NULL DEFAULT 0,
+pad_crypto BOOLEAN NOT NULL DEFAULT 0,
 protocol ENUM('udp','tcp','tls', 'tls/srtp') DEFAULT 'udp' COMMENT 'Outbound call protocol',
 PRIMARY KEY (sip_gateway_sid)
 ) COMMENT='A whitelisted sip gateway used for origination/termination';
@@ -478,8 +498,18 @@ app_json TEXT,
 speech_synthesis_vendor VARCHAR(64) NOT NULL DEFAULT 'google',
 speech_synthesis_language VARCHAR(12) NOT NULL DEFAULT 'en-US',
 speech_synthesis_voice VARCHAR(64),
+speech_synthesis_label VARCHAR(64),
 speech_recognizer_vendor VARCHAR(64) NOT NULL DEFAULT 'google',
 speech_recognizer_language VARCHAR(64) NOT NULL DEFAULT 'en-US',
+speech_recognizer_label VARCHAR(64),
+use_for_fallback_speech BOOLEAN DEFAULT false,
+fallback_speech_synthesis_vendor VARCHAR(64),
+fallback_speech_synthesis_language VARCHAR(12),
+fallback_speech_synthesis_voice VARCHAR(64),
+fallback_speech_synthesis_label VARCHAR(64),
+fallback_speech_recognizer_vendor VARCHAR(64),
+fallback_speech_recognizer_language VARCHAR(64),
+fallback_speech_recognizer_label VARCHAR(64),
 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 record_all_calls BOOLEAN NOT NULL DEFAULT false,
 PRIMARY KEY (application_sid)
@@ -543,10 +573,10 @@ ALTER TABLE call_routes ADD FOREIGN KEY account_sid_idxfk_3 (account_sid) REFERE
 ALTER TABLE call_routes ADD FOREIGN KEY application_sid_idxfk (application_sid) REFERENCES applications (application_sid);
 
 CREATE INDEX client_sid_idx ON clients (client_sid);
-ALTER TABLE clients ADD FOREIGN KEY account_sid_idxfk_4 (account_sid) REFERENCES accounts (account_sid);
+ALTER TABLE clients ADD CONSTRAINT account_sid_idxfk_13 FOREIGN KEY account_sid_idxfk_13 (account_sid) REFERENCES accounts (account_sid);
 
 CREATE INDEX dns_record_sid_idx ON dns_records (dns_record_sid);
-ALTER TABLE dns_records ADD FOREIGN KEY account_sid_idxfk_5 (account_sid) REFERENCES accounts (account_sid);
+ALTER TABLE dns_records ADD FOREIGN KEY account_sid_idxfk_4 (account_sid) REFERENCES accounts (account_sid);
 
 CREATE INDEX lcr_sid_idx ON lcr_routes (lcr_sid);
 ALTER TABLE lcr_routes ADD FOREIGN KEY lcr_sid_idxfk (lcr_sid) REFERENCES lcr (lcr_sid);
@@ -575,14 +605,14 @@ ALTER TABLE account_products ADD FOREIGN KEY product_sid_idxfk (product_sid) REF
 
 CREATE INDEX account_offer_sid_idx ON account_offers (account_offer_sid);
 CREATE INDEX account_sid_idx ON account_offers (account_sid);
-ALTER TABLE account_offers ADD FOREIGN KEY account_sid_idxfk_6 (account_sid) REFERENCES accounts (account_sid);
+ALTER TABLE account_offers ADD FOREIGN KEY account_sid_idxfk_5 (account_sid) REFERENCES accounts (account_sid);
 
 CREATE INDEX product_sid_idx ON account_offers (product_sid);
 ALTER TABLE account_offers ADD FOREIGN KEY product_sid_idxfk_1 (product_sid) REFERENCES products (product_sid);
 
 CREATE INDEX api_key_sid_idx ON api_keys (api_key_sid);
 CREATE INDEX account_sid_idx ON api_keys (account_sid);
-ALTER TABLE api_keys ADD FOREIGN KEY account_sid_idxfk_7 (account_sid) REFERENCES accounts (account_sid);
+ALTER TABLE api_keys ADD FOREIGN KEY account_sid_idxfk_6 (account_sid) REFERENCES accounts (account_sid);
 
 CREATE INDEX service_provider_sid_idx ON api_keys (service_provider_sid);
 ALTER TABLE api_keys ADD FOREIGN KEY service_provider_sid_idxfk (service_provider_sid) REFERENCES service_providers (service_provider_sid);
@@ -596,7 +626,7 @@ ALTER TABLE sbc_addresses ADD FOREIGN KEY service_provider_sid_idxfk_1 (service_
 CREATE INDEX ms_teams_tenant_sid_idx ON ms_teams_tenants (ms_teams_tenant_sid);
 ALTER TABLE ms_teams_tenants ADD FOREIGN KEY service_provider_sid_idxfk_2 (service_provider_sid) REFERENCES service_providers (service_provider_sid);
 
-ALTER TABLE ms_teams_tenants ADD FOREIGN KEY account_sid_idxfk_8 (account_sid) REFERENCES accounts (account_sid);
+ALTER TABLE ms_teams_tenants ADD FOREIGN KEY account_sid_idxfk_7 (account_sid) REFERENCES accounts (account_sid);
 
 ALTER TABLE ms_teams_tenants ADD FOREIGN KEY application_sid_idxfk_1 (application_sid) REFERENCES applications (application_sid);
 
@@ -609,20 +639,22 @@ CREATE INDEX smpp_address_sid_idx ON smpp_addresses (smpp_address_sid);
 CREATE INDEX service_provider_sid_idx ON smpp_addresses (service_provider_sid);
 ALTER TABLE smpp_addresses ADD FOREIGN KEY service_provider_sid_idxfk_4 (service_provider_sid) REFERENCES service_providers (service_provider_sid);
 
-CREATE UNIQUE INDEX speech_credentials_idx_1 ON speech_credentials (vendor,account_sid);
-
 CREATE INDEX speech_credential_sid_idx ON speech_credentials (speech_credential_sid);
 CREATE INDEX service_provider_sid_idx ON speech_credentials (service_provider_sid);
 ALTER TABLE speech_credentials ADD FOREIGN KEY service_provider_sid_idxfk_5 (service_provider_sid) REFERENCES service_providers (service_provider_sid);
 
 CREATE INDEX account_sid_idx ON speech_credentials (account_sid);
-ALTER TABLE speech_credentials ADD FOREIGN KEY account_sid_idxfk_9 (account_sid) REFERENCES accounts (account_sid);
+ALTER TABLE speech_credentials ADD FOREIGN KEY account_sid_idxfk_8 (account_sid) REFERENCES accounts (account_sid);
+
+CREATE INDEX google_custom_voice_sid_idx ON google_custom_voices (google_custom_voice_sid);
+CREATE INDEX speech_credential_sid_idx ON google_custom_voices (speech_credential_sid);
+ALTER TABLE google_custom_voices ADD FOREIGN KEY speech_credential_sid_idxfk (speech_credential_sid) REFERENCES speech_credentials (speech_credential_sid) ON DELETE CASCADE;
 
 CREATE INDEX user_sid_idx ON users (user_sid);
 CREATE INDEX email_idx ON users (email);
 CREATE INDEX phone_idx ON users (phone);
 CREATE INDEX account_sid_idx ON users (account_sid);
-ALTER TABLE users ADD FOREIGN KEY account_sid_idxfk_10 (account_sid) REFERENCES accounts (account_sid);
+ALTER TABLE users ADD FOREIGN KEY account_sid_idxfk_9 (account_sid) REFERENCES accounts (account_sid);
 
 CREATE INDEX service_provider_sid_idx ON users (service_provider_sid);
 ALTER TABLE users ADD FOREIGN KEY service_provider_sid_idxfk_6 (service_provider_sid) REFERENCES service_providers (service_provider_sid);
@@ -630,7 +662,7 @@ ALTER TABLE users ADD FOREIGN KEY service_provider_sid_idxfk_6 (service_provider
 CREATE INDEX email_activation_code_idx ON users (email_activation_code);
 CREATE INDEX voip_carrier_sid_idx ON voip_carriers (voip_carrier_sid);
 CREATE INDEX account_sid_idx ON voip_carriers (account_sid);
-ALTER TABLE voip_carriers ADD FOREIGN KEY account_sid_idxfk_11 (account_sid) REFERENCES accounts (account_sid);
+ALTER TABLE voip_carriers ADD FOREIGN KEY account_sid_idxfk_10 (account_sid) REFERENCES accounts (account_sid);
 
 CREATE INDEX service_provider_sid_idx ON voip_carriers (service_provider_sid);
 ALTER TABLE voip_carriers ADD FOREIGN KEY service_provider_sid_idxfk_7 (service_provider_sid) REFERENCES service_providers (service_provider_sid);
@@ -654,7 +686,7 @@ CREATE INDEX number_idx ON phone_numbers (number);
 CREATE INDEX voip_carrier_sid_idx ON phone_numbers (voip_carrier_sid);
 ALTER TABLE phone_numbers ADD FOREIGN KEY voip_carrier_sid_idxfk_1 (voip_carrier_sid) REFERENCES voip_carriers (voip_carrier_sid);
 
-ALTER TABLE phone_numbers ADD FOREIGN KEY account_sid_idxfk_12 (account_sid) REFERENCES accounts (account_sid);
+ALTER TABLE phone_numbers ADD FOREIGN KEY account_sid_idxfk_11 (account_sid) REFERENCES accounts (account_sid);
 
 ALTER TABLE phone_numbers ADD FOREIGN KEY application_sid_idxfk_3 (application_sid) REFERENCES applications (application_sid);
 
@@ -678,7 +710,7 @@ CREATE INDEX service_provider_sid_idx ON applications (service_provider_sid);
 ALTER TABLE applications ADD FOREIGN KEY service_provider_sid_idxfk_9 (service_provider_sid) REFERENCES service_providers (service_provider_sid);
 
 CREATE INDEX account_sid_idx ON applications (account_sid);
-ALTER TABLE applications ADD FOREIGN KEY account_sid_idxfk_13 (account_sid) REFERENCES accounts (account_sid);
+ALTER TABLE applications ADD FOREIGN KEY account_sid_idxfk_12 (account_sid) REFERENCES accounts (account_sid);
 
 ALTER TABLE applications ADD FOREIGN KEY call_hook_sid_idxfk (call_hook_sid) REFERENCES webhooks (webhook_sid);
 
@@ -703,4 +735,5 @@ ALTER TABLE accounts ADD FOREIGN KEY queue_event_hook_sid_idxfk (queue_event_hoo
 ALTER TABLE accounts ADD FOREIGN KEY device_calling_application_sid_idxfk (device_calling_application_sid) REFERENCES applications (application_sid);
 
 ALTER TABLE accounts ADD FOREIGN KEY siprec_hook_sid_idxfk (siprec_hook_sid) REFERENCES applications (application_sid);
+
 SET FOREIGN_KEY_CHECKS=1;
