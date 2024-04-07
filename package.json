@@ -1,6 +1,6 @@
 {
   "name": "sbc-sip-sidecar",
-  "version": "0.8.5",
+  "version": "0.9.0",
   "description": "SBC SIP sidecar app (handles REGISTER and OPTIONS)",
   "main": "app.js",
   "engines": {
@@ -28,23 +28,23 @@
   "homepage": "https://github.com/jambonz/sbc-sip-sidecar#readme",
   "dependencies": {
     "@jambonz/db-helpers": "^0.9.3",
-    "@jambonz/mw-registrar": "^0.2.4",
-    "@jambonz/realtimedb-helpers": "^0.8.7",
+    "@jambonz/mw-registrar": "^0.2.7",
+    "@jambonz/realtimedb-helpers": "^0.8.8",
     "@jambonz/stats-collector": "^0.1.9",
-    "@jambonz/time-series": "^0.2.5",
+    "@jambonz/time-series": "^0.2.8",
     "@jambonz/digest-utils": "^0.0.5",
     "debug": "^4.3.4",
     "drachtio-mw-registration-parser": "^0.1.0",
     "drachtio-mw-response-time": "^1.0.2",
     "drachtio-srf": "^4.5.31",
-    "pino": "^6.14.0",
+    "pino": "^8.20.0",
     "short-uuid": "^4.2.2"
   },
   "devDependencies": {
     "clear-module": "^4.1.2",
     "eslint": "^7.32.0",
-    "eslint-plugin-promise": "^4.3.1",
+    "eslint-plugin-promise": "^6.1.1",
     "nyc": "^15.1.0",
-    "tape": "^4.15.1"
+    "tape": "^5.7.5"
   }
 }
