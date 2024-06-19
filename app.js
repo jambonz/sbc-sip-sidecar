@@ -121,6 +121,7 @@ srf.on('connect', (err, hp) => {
   logger.info(`connected to drachtio listening on ${hp}`);
 
   // Add SBC Public IP to Database
+  srf.locals.sbcPublicIpAddress = {};
   const map = new Map();
   const hostports = hp.split(',');
   for (const hp of hostports) {
@@ -131,13 +132,24 @@ srf.on('connect', (err, hp) => {
       const addr = map.get(ipv4) || {ipv4};
       switch (arr[1]) {
         case 'udp':
-          srf.locals.sbcPublicIpAddress = `${ipv4}:${port}`;
+          srf.locals.sbcPublicIpAddress = {
+            ...srf.locals.sbcPublicIpAddress,
+            udp: `${ipv4}:${port}`
+          };
           map.set(ipv4, {...addr, port: port});
           break;
         case 'tls':
           map.set(ipv4, {...addr, tls_port: port});
+          srf.locals.sbcPublicIpAddress = {
+            ...srf.locals.sbcPublicIpAddress,
+            tls: `${ipv4}:${port}`
+          };
           break;
         case 'wss':
+          srf.locals.sbcPublicIpAddress = {
+            ...srf.locals.sbcPublicIpAddress,
+            wss: `${ipv4}:${port}`
+          };
           map.set(ipv4, {...addr, wss_port: port});
           break;
       }
