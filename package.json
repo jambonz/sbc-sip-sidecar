@@ -36,7 +36,7 @@
     "debug": "^4.3.4",
     "drachtio-mw-registration-parser": "^0.1.0",
     "drachtio-mw-response-time": "^1.0.2",
-    "drachtio-srf": "^4.5.31",
+    "drachtio-srf": "^4.5.38",
     "pino": "^8.20.0",
     "short-uuid": "^4.2.2"
   },
