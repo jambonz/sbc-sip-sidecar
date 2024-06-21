@@ -33,7 +33,7 @@
     "@jambonz/stats-collector": "^0.1.10",
     "@jambonz/time-series": "^0.2.8",
     "@jambonz/digest-utils": "^0.0.5",
-    "debug": "^4.3.4",
+    "debug": "^4.3.5",
     "drachtio-mw-registration-parser": "^0.1.0",
     "drachtio-mw-response-time": "^1.0.2",
     "drachtio-srf": "^4.5.31",
