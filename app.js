@@ -122,6 +122,7 @@ srf.on('connect', (err, hp) => {
 
   // Add SBC Public IP to Database
   srf.locals.sbcPublicIpAddress = {};
+  let defaultIp;
   const map = new Map();
   const hostports = hp.split(',');
   for (const hp of hostports) {
@@ -137,6 +138,7 @@ srf.on('connect', (err, hp) => {
             udp: `${ipv4}:${port}`
           };
           map.set(ipv4, {...addr, port: port});
+          defaultIp = ipv4;
           break;
         case 'tls':
           map.set(ipv4, {...addr, tls_port: port});
@@ -155,6 +157,13 @@ srf.on('connect', (err, hp) => {
       }
     }
   }
+
+  // if drachtio server does not tell us the tls ip and port default to standard 5061
+  if (!srf.locals.sbcPublicIpAddress.tls) {
+    srf.locals.sbcPublicIpAddress.tls = `${defaultIp}:5061`;
+  }
+
+  logger.info({sbcPublicIpAddress: srf.locals.sbcPublicIpAddress}, 'sbc public ip addresses');
 
   // Function to check if the IP address is in a private subnet (RFC 1918)
   const isPrivateSubnet = (ip) => {
