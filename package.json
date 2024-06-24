@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "start": "node app",
-    "test": "NODE_ENV=test JAMBONES_HOSTING=1 HTTP_POOL=1 JWT_SECRET=foobarbazzle DRACHTIO_HOST=127.0.0.1 DRACHTIO_PORT=9022 DRACHTIO_SECRET=cymru JAMBONES_MYSQL_HOST=127.0.0.1 JAMBONES_MYSQL_PORT=3306 JAMBONES_MYSQL_USER=jambones_test JAMBONES_MYSQL_PASSWORD=jambones_test JAMBONES_MYSQL_DATABASE=jambones_test JAMBONES_REDIS_HOST=127.0.0.1 JAMBONES_REDIS_PORT=16379 JAMBONES_LOGLEVEL=error ENABLE_METRICS=0 HTTP_PORT=3000 JAMBONES_SBCS=172.39.0.10 JAMBONES_FREESWITCH=127.0.0.1:8022:ClueCon:docker-host JAMBONES_TIME_SERIES_HOST=127.0.0.1 JAMBONES_NETWORK_CIDR=172.39.0.0/16 node test/ ",
+    "test": "NODE_ENV=test JAMBONES_HOSTING=1 HTTP_POOL=1 JWT_SECRET=foobarbazzle DRACHTIO_HOST=127.0.0.1 DRACHTIO_PORT=9022 DRACHTIO_SECRET=cymru JAMBONES_MYSQL_HOST=127.0.0.1 JAMBONES_MYSQL_PORT=3306 JAMBONES_MYSQL_USER=jambones_test JAMBONES_MYSQL_PASSWORD=jambones_test JAMBONES_MYSQL_DATABASE=jambones_test JAMBONES_REDIS_HOST=127.0.0.1 JAMBONES_REDIS_PORT=16379 JAMBONES_LOGLEVEL=debug ENABLE_METRICS=0 HTTP_PORT=3000 JAMBONES_SBCS=172.39.0.10 JAMBONES_FREESWITCH=127.0.0.1:8022:ClueCon:docker-host JAMBONES_TIME_SERIES_HOST=127.0.0.1 JAMBONES_NETWORK_CIDR=172.39.0.0/16 node test/ ",
     "coverage": "./node_modules/.bin/nyc --reporter html --report-dir ./coverage npm run test",
     "jslint": "eslint app.js lib"
   },
@@ -36,7 +36,7 @@
     "debug": "^4.3.4",
     "drachtio-mw-registration-parser": "^0.1.0",
     "drachtio-mw-response-time": "^1.0.2",
-    "drachtio-srf": "^4.5.38",
+    "drachtio-srf": "^4.5.39",
     "pino": "^8.20.0",
     "short-uuid": "^4.2.2"
   },
