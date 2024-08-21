@@ -28,7 +28,7 @@ const testData = [
 	{ input: "2001:0db8:85a3:0000:0000:8a2e:0370:7334", expectedOutput: false, description: "IPv6 address" },
 	{ input: "localhost", expectedOutput: false, description: "Hostname, not IP" },
 	{ input: "10.0.0.1/24", expectedOutput: false, description: "IPv4 with subnet mask" },
-	{ input: "551140451046.primary.companyflex.de:0", expectedOutput: false, description: "Hostname with port, not IP" },
+	{ input: "991240413047.primary.companyflex.de:0", expectedOutput: false, description: "Hostname with port, not IP" },
   ];
 
 test('register tests', (t) => {
