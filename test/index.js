@@ -4,3 +4,4 @@ require('./create-test-db');
 require('./sip-register-tests');
 require('./sip-options-tests');
 require('./docker_stop');
+require('./utils');

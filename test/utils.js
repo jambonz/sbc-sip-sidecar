@@ -1,6 +1,6 @@
 const test = require('tape');
 const clearModule = require('clear-module');
-const { isIPv4 } = require('../lib/utils');
+const { isValidIPv4 } = require('../lib/utils');
 
 process.on('unhandledRejection', (reason, p) => {
   console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
@@ -35,7 +35,7 @@ test('register tests', (t) => {
   clearModule.all();
 
   for (const data of testData) {
-	t.equal(isIPv4(data.input), data.expectedOutput, data.description);
+	t.equal(isValidIPv4(data.input), data.expectedOutput, data.description);
   }
 
   t.end();
