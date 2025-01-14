@@ -1,6 +1,6 @@
 {
   "name": "sbc-sip-sidecar",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "SBC SIP sidecar app (handles REGISTER and OPTIONS)",
   "main": "app.js",
   "engines": {
