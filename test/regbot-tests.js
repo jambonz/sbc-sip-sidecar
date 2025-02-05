@@ -4,7 +4,7 @@ const {
   JAMBONES_REDIS_PORT,
   JAMBONES_LOGLEVEL,
   JAMBONES_CLUSTER_ID,
-} = require('./config');
+} = require('../lib/config');
 const clearModule = require('clear-module');
 const exec = require('child_process').exec;
 const opts = Object.assign({
