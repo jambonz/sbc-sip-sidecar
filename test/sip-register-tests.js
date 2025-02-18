@@ -56,7 +56,11 @@ test('register tests', (t) => {
       return sippUac('uac-register-auth-success-jane.xml', sippRegObj);
     })
     .then(() => {
-      t.pass('successfully re-registered against short registration with re-auth');
+      t.pass('successfully registered for jane');
+      return sippUac('uac-register-gh-83.xml', sippRegObj);
+    })
+    .then(() => {
+      t.pass('unsuccessfully registered for invalid From and To headers');
       if (srf.locals.lb) srf.locals.lb.disconnect();
       srf.disconnect();
       t.end();
