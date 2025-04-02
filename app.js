@@ -56,7 +56,8 @@ const {
   lookupSipGatewaysByFilters,
   updateSipGatewayBySid,
   lookupCarrierBySid,
-  lookupSystemInformation
+  lookupSystemInformation,
+  updateCarrierBySid,
 } = require('@jambonz/db-helpers')({
   host: JAMBONES_MYSQL_HOST,
   user: JAMBONES_MYSQL_USER,
@@ -104,7 +105,8 @@ srf.locals = {
     lookupSipGatewaysByFilters,
     updateSipGatewayBySid,
     lookupCarrierBySid,
-    lookupSystemInformation
+    lookupSystemInformation,
+    updateCarrierBySid
   },
   realtimeDbHelpers: {
     client,
