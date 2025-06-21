@@ -58,6 +58,7 @@ const {
   lookupCarrierBySid,
   lookupSystemInformation,
   updateCarrierBySid,
+  lookupAccountBySid
 } = require('@jambonz/db-helpers')({
   host: JAMBONES_MYSQL_HOST,
   user: JAMBONES_MYSQL_USER,
@@ -95,6 +96,7 @@ srf.locals = {
   addToSet, removeFromSet, isMemberOfSet, retrieveSet,
   registrar: new Registrar(logger, client),
   dbHelpers: {
+    lookupAccountBySid,
     lookupAuthHook,
     lookupAllVoipCarriers,
     lookupSipGatewaysByCarrier,
