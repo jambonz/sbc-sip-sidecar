@@ -122,8 +122,8 @@ srf.locals = {
   AlertType
 };
 const cidrs = process.env.JAMBONES_NETWORK_CIDR
-    .split(',')
-    .map((s) => s.trim());
+  .split(',')
+  .map((s) => s.trim());
 const matcher = new CIDRMatcher(cidrs);
 
 srf.connect({ host: DRACHTIO_HOST, port: DRACHTIO_PORT, secret: DRACHTIO_SECRET });
@@ -132,14 +132,14 @@ srf.on('connect', (err, hp, version, localHostports) => {
   logger.info(`connected to drachtio listening on ${hp}, local hostports: ${localHostports}`);
 
   if (localHostports) {
-      const locals = localHostports.split(',');
-      for (const hp of locals) {
-        const arr = /^(.*)\/(.*):(\d+)$/.exec(hp);
-        if (arr && 'tcp' === arr[1] && matcher.contains(arr[2])) {
-          const hostport = `${arr[2]}:${arr[3]}`;
-          srf.locals.privateSipAddress = hostport;
-        }
+    const locals = localHostports.split(',');
+    for (const hp of locals) {
+      const arr = /^(.*)\/(.*):(\d+)$/.exec(hp);
+      if (arr && 'tcp' === arr[1] && matcher.contains(arr[2])) {
+        const hostport = `${arr[2]}:${arr[3]}`;
+        srf.locals.privateSipAddress = hostport;
       }
+    }
   }
 
   // Add SBC Public IP to Database
