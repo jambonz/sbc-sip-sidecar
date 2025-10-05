@@ -32,6 +32,7 @@ assert.ok(DRACHTIO_PORT, 'missing DRACHTIO_PORT env var');
 assert.ok(DRACHTIO_SECRET, 'missing DRACHTIO_SECRET env var');
 assert.ok(JAMBONES_TIME_SERIES_HOST, 'missing JAMBONES_TIME_SERIES_HOST env var');
 
+const CIDRMatcher = require('cidr-matcher');
 const logger = require('pino')({ level: JAMBONES_LOGLEVEL || 'info' });
 const Srf = require('drachtio-srf');
 const srf = new Srf();
@@ -120,11 +121,26 @@ srf.locals = {
   writeAlerts,
   AlertType
 };
+const cidrs = process.env.JAMBONES_NETWORK_CIDR
+  .split(',')
+  .map((s) => s.trim());
+const matcher = new CIDRMatcher(cidrs);
 
 srf.connect({ host: DRACHTIO_HOST, port: DRACHTIO_PORT, secret: DRACHTIO_SECRET });
-srf.on('connect', (err, hp) => {
+srf.on('connect', (err, hp, version, localHostports) => {
   if (err) return logger.error({ err }, 'Error connecting to drachtio server');
-  logger.info(`connected to drachtio listening on ${hp}`);
+  logger.info(`connected to drachtio listening on ${hp}, local hostports: ${localHostports}`);
+
+  if (localHostports) {
+    const locals = localHostports.split(',');
+    for (const hp of locals) {
+      const arr = /^(.*)\/(.*):(\d+)$/.exec(hp);
+      if (arr && 'tcp' === arr[1] && matcher.contains(arr[2])) {
+        const hostport = `${arr[2]}:${arr[3]}`;
+        srf.locals.privateSipAddress = hostport;
+      }
+    }
+  }
 
   // Add SBC Public IP to Database
   srf.locals.sbcPublicIpAddress = {};
