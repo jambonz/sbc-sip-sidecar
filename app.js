@@ -86,7 +86,6 @@ const {
   removeFromSet,
   isMemberOfSet,
   retrieveSet,
-  createHash
 } = require('@jambonz/realtimedb-helpers')({}, logger);
 
 const interval = SBC_PUBLIC_ADDRESS_KEEP_ALIVE_IN_MILISECOND || 900000; // Default 15 minutes
@@ -118,7 +117,6 @@ srf.locals = {
     addKeyNx,
     retrieveKey,
     retrieveSet,
-    createHash
   },
   writeAlerts,
   AlertType
