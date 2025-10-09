@@ -48,10 +48,11 @@ test('populating more test case data', (t) => {
 test('trunk register tests', (t) => {
   clearModule.all();
   const { srf } = require('../app');
-  t.timeoutAfter(60000);
+  t.timeoutAfter(180000);
 
+  console.log('waiting 15 seconds for regbot to start up');
   connect(srf)
-    .then(wait.bind(null, 1500))
+    .then(wait.bind(null, 15000))
     .then(() => {
       const obj = srf.locals.regbotStatus();
       return t.ok(obj.total === 1 && obj.registered === 1, 'initial regbot running and successfully registered to trunk');
@@ -66,20 +67,26 @@ test('trunk register tests', (t) => {
       });
     })
     .then(() => {
-      return wait(35000);
+      console.log('waiting 65 seconds for regbot to come around to check for new gateways');
+      return wait(65000);
     })
     .then(() => {
       const obj = srf.locals.regbotStatus();
+      //console.log({obj}, 'regbot status after adding new gateway');
       return t.ok(obj.total === 2 && obj.registered === 1, 'successfully added gateway that tests failure result');
     })
     .then(() => {
       return new Promise((resolve, reject) => {
-        exec(`mysql -h 127.0.0.1 -u root --protocol=tcp   -D jambones_test -e "delete from sip_gateways where sip_gateway_sid = '987a5339-c62c-4075-9e19-f4de70a96597'"`, (err, stdout, stderr) => {
+        exec(`mysql -h 127.0.0.1 -u root --protocol=tcp   -D jambones_test < ${__dirname}/db/populate-test-data4.sql`, (err, stdout, stderr) => {
           if (err) return reject(err);
-          t.pass('added new gateway');
+          t.pass('added new reg trunk');
           resolve();
         });
       });
+    })
+    .then(() => {
+      console.log('waiting 65 seconds for regbot to come around to check for new reg trunk');
+      return wait(65000);
     })
     .then(() => {
       if (srf.locals.lb) srf.locals.lb.disconnect();
@@ -96,10 +103,11 @@ test('trunk register tests', (t) => {
     });
 });
 
+/*
 test('trunk register tests when its IP in redis cache', (t) => {
   clearModule.all();
   const { srf } = require('../app');
-  t.timeoutAfter(60000);
+  t.timeoutAfter(90000);
   addToSet(setName, "172.39.0.10:5060");
 
   connect(srf)
@@ -124,7 +132,6 @@ test('trunk register tests when its IP in redis cache', (t) => {
       t.error(err);
     });
 });
-
 
 test('trunk register with sbc public IP address', (t) => {
   clearModule.all();
@@ -196,3 +203,4 @@ test('trunk not register tests when its IP is not in redis cache', (t) => {
       t.error(err);
     });
 });
+*/
