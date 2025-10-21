@@ -38,13 +38,13 @@
     "drachtio-mw-registration-parser": "^0.1.2",
     "drachtio-mw-response-time": "^1.0.2",
     "drachtio-srf": "^5.0.5",
-    "pino": "^8.20.0",
+    "pino": "^10.1.0",
     "short-uuid": "^4.2.2"
   },
   "devDependencies": {
     "clear-module": "^4.1.2",
-    "eslint": "^7.32.0",
-    "eslint-plugin-promise": "^6.1.1",
+    "eslint": "^9.17.0",
+    "eslint-plugin-promise": "^7.2.1",
     "nyc": "^15.1.0",
     "tape": "^5.7.5"
   }
