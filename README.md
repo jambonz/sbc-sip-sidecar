@@ -29,6 +29,50 @@ Configuration is provided via environment variables:
 |JAMBONES_REGBOT_DEFAULT_EXPIRES_INTERVAL| default expire value for outbound registration in seconds (default 3600) |no|
 |JAMBONES_REGBOT_MIN_EXPIRES_INTERVAL| minimum expire value for outbound registration in seconds (default 30) |no|
 
+## CLI Management
+
+The SBC provides a CLI tool for runtime management of feature servers. Use the CLI to drain/undrain feature servers during maintenance or scaling operations.
+
+### Installation
+```bash
+npm install
+```
+
+### Usage
+```bash
+# Show all commands
+npm run cli
+
+# Drain a feature server (remove from active pool)
+npm run cli fs drain 192.168.1.10
+
+# Undrain a feature server (add back to active pool)  
+npm run cli fs undrain 192.168.1.10
+
+# List currently drained servers
+npm run cli fs drained
+
+# List all available feature servers
+npm run cli fs active
+
+# Show all servers with status
+npm run cli fs list
+```
+
+### Examples
+```bash
+# During maintenance - drain server before updates
+npm run cli fs drain 10.0.1.5
+
+# After maintenance - bring server back online
+npm run cli fs undrain 10.0.1.5
+
+# Check which servers are available for draining
+npm run cli fs active
+```
+
+The CLI connects via Unix socket (`/tmp/sbc-sip-sidecar.sock`) and requires admin access to the server.
+
 ## Registrar database
 
 A redis database is used to hold active registrations. When a register request arrives and is authenticated, the following values are parsed from the request:
