@@ -17,6 +17,9 @@ const {
   NODE_ENV,
   SBC_PUBLIC_ADDRESS_KEEP_ALIVE_IN_MILISECOND
 } = require('./lib/config');
+
+// Initialize runtime configuration
+const runtimeConfig = require('./lib/cli/runtime-config');
 assert.ok(JAMBONES_MYSQL_HOST &&
   JAMBONES_MYSQL_USER &&
   JAMBONES_MYSQL_PASSWORD &&
