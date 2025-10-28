@@ -88,6 +88,7 @@ const {
   isMemberOfSet,
   retrieveSet,
   createEphemeralGateway,
+  deleteEphemeralGateway
 } = require('@jambonz/realtimedb-helpers')({}, logger);
 
 const interval = SBC_PUBLIC_ADDRESS_KEEP_ALIVE_IN_MILISECOND || 900000; // Default 15 minutes
@@ -120,6 +121,7 @@ srf.locals = {
     retrieveKey,
     retrieveSet,
     createEphemeralGateway,
+    deleteEphemeralGateway
   },
   writeAlerts,
   AlertType
