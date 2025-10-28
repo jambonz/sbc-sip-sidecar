@@ -260,7 +260,7 @@ srf.register(require('./lib/register')({logger}));
 srf.options(require('./lib/options')({srf, logger}));
 
 // Start CLI runtime config server with access to srf.locals
-require('./lib/cli/runtime-config').initialize(srf.locals);
+require('./lib/cli/runtime-config').initialize(srf.locals, logger);
 
 setInterval(async() => {
   const count = await srf.locals.registrar.getCountOfUsers();
