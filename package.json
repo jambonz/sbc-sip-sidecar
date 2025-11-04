@@ -4,7 +4,7 @@
   "description": "SBC SIP sidecar app (handles REGISTER and OPTIONS)",
   "main": "app.js",
   "engines": {
-    "node": ">= 18.0.0"
+    "node": ">= 20.0.0"
   },
   "keywords": [
     "sip",
@@ -35,7 +35,7 @@
     "@jambonz/realtimedb-helpers": "^0.8.19",
     "@jambonz/stats-collector": "^0.1.10",
     "@jambonz/time-series": "^0.2.8",
-    "debug": "^4.3.4",
+    "debug": "^4.4.3",
     "drachtio-mw-registration-parser": "^0.1.2",
     "drachtio-mw-response-time": "^1.0.2",
     "drachtio-srf": "^5.0.5",
