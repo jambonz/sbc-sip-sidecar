@@ -126,7 +126,8 @@ srf.locals = {
   writeAlerts,
   AlertType
 };
-const cidrs = process.env.JAMBONES_NETWORK_CIDR
+const cidrsEnv = process.env.JAMBONES_NETWORK_CIDR || '192.168.0.0/24,172.16.0.0/16,10.0.0.0/8';
+const cidrs = cidrsEnv
   .split(',')
   .map((s) => s.trim());
 const matcher = new CIDRMatcher(cidrs);
