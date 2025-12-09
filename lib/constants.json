@@ -1,0 +1,8 @@
+{
+  "SystemState" : {
+    "Online": "ONLINE",
+    "Offline": "OFFLINE",
+    "GracefulShutdownInProgress":"SHUTDOWN_IN_PROGRESS"
+  },
+  "SBC_SIP_SIDECAR" : "sbc-sip-sidecar"
+}
