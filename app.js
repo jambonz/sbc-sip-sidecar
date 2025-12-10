@@ -98,36 +98,20 @@ const {
 
 const interval = SBC_PUBLIC_ADDRESS_KEEP_ALIVE_IN_MILISECOND || 900000; // Default 15 minutes
 
-// Helper function to sanitize alert data for InfluxDB line protocol
+// Helper function to ensure alert data is safe for InfluxDB line protocol
 function sanitizeAlertData(data) {
   const sanitized = { ...data };
 
-  // Sanitize fields to remove special characters that break InfluxDB line protocol
+  // Ensure fields exist and handle edge cases
   if (sanitized.fields) {
     sanitized.fields = { ...sanitized.fields };
 
-    // Sanitize detail field - remove quotes, backslashes, newlines, and limit length
-    if (sanitized.fields.detail) {
-      sanitized.fields.detail = sanitized.fields.detail
-        .replace(/"/g, "'")      // Replace double quotes with single quotes
-        .replace(/\\/g, '')      // Remove backslashes
-        .replace(/\n/g, ' ')     // Replace newlines with spaces
-        .replace(/\r/g, ' ')     // Replace carriage returns with spaces
-        .replace(/\t/g, ' ')     // Replace tabs with spaces
-        .substring(0, 200);      // Limit length to prevent overflow
-    }
-
-    // Sanitize host field - provide default if undefined
+    // Ensure host field is always a string (InfluxDB doesn't like undefined)
     if (sanitized.fields.host === undefined || sanitized.fields.host === null) {
       sanitized.fields.host = 'unknown';
     } else {
-      sanitized.fields.host = sanitized.fields.host
-        .toString()
-        .replace(/"/g, "'")
-        .replace(/\\/g, '')
-        .substring(0, 50);
+      sanitized.fields.host = sanitized.fields.host.toString();
     }
-
   }
 
   return sanitized;
