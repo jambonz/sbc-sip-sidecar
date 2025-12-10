@@ -128,13 +128,6 @@ function sanitizeAlertData(data) {
         .substring(0, 50);
     }
 
-    // Sanitize error_type field
-    if (sanitized.fields.error_type) {
-      sanitized.fields.error_type = sanitized.fields.error_type
-        .replace(/"/g, "'")
-        .replace(/\\/g, '')
-        .substring(0, 50);
-    }
   }
 
   return sanitized;
@@ -350,8 +343,7 @@ process.on('uncaughtException', async (err) => {
         state: SystemState.Offline,
         fields: {
           detail: `Uncaught exception in sbc-sip-sidecar process ${process.pid}`,
-          host: srf.locals?.ipv4,
-          error_type: 'uncaught_exception'
+          host: srf.locals?.ipv4
         }
       }));
     } catch (alertErr) {
@@ -372,8 +364,7 @@ process.on('unhandledRejection', async (reason, promise) => {
         state: SystemState.Offline,
         fields: {
           detail: `Unhandled promise rejection in sbc-sip-sidecar process ${process.pid}`,
-          host: srf.locals?.ipv4,
-          error_type: 'unhandled_rejection'
+          host: srf.locals?.ipv4
         }
       }));
     } catch (alertErr) {
