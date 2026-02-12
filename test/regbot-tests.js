@@ -72,7 +72,6 @@ test('trunk register tests', (t) => {
     })
     .then(() => {
       const obj = srf.locals.regbotStatus();
-      //console.log({obj}, 'regbot status after adding new gateway');
       return t.ok(obj.total === 2 && obj.registered === 1, 'successfully added gateway that tests failure result');
     })
     .then(() => {
