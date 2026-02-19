@@ -73,7 +73,7 @@ test('trunk register tests', (t) => {
     .then(() => {
       const obj = srf.locals.regbotStatus();
       console.log(`regbotStatus: total=${obj.total}, registered=${obj.registered}, active=${obj.active}`);
-      return t.ok(obj.total === 2, 'successfully added gateway that tests failure result');
+      return t.ok(obj.total === 2 && obj.registered === 1, 'successfully added gateway that tests failure result');
     })
     .then(() => {
       return new Promise((resolve, reject) => {
