@@ -44,6 +44,16 @@ services:
       sbc-sip-sidecar:
         ipv4_address: 172.39.0.12
 
+  influxdb:
+    image: influxdb:1.8
+    ports:
+      - "8086:8086/tcp"
+    environment:
+      INFLUXDB_DB: "jambones_time_series"
+    networks:
+      sbc-sip-sidecar:
+        ipv4_address: 172.39.0.16
+
   redis:
     image: redis:5-alpine
     ports:
