@@ -58,7 +58,7 @@
       [last_To:];tag=[pid]SIPpTag01[call_number]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[local_ip]:[local_port];transport=[transport]>;expires=60
+      Contact: <sip:[local_ip]:[local_port];transport=[transport]>;expires=600
       Content-Type: application/sdp
       Content-Length: 0
 
@@ -75,7 +75,7 @@
       [last_To:];tag=[pid]SIPpTag01[call_number]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[local_ip]:[local_port];transport=[transport]>;expires=60
+      Contact: <sip:[local_ip]:[local_port];transport=[transport]>;expires=600
       Content-Type: application/sdp
       Content-Length: 0
 
