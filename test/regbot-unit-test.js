@@ -91,6 +91,31 @@ test('configKey returns identical strings for identical config', (t) => {
   t.end();
 });
 
+test('static configKeyFromOpts matches instance configKey', (t) => {
+  const config = {
+    voip_carrier_sid: 'carrier-1',
+    ipv4: '2.3.4.5',
+    port: 5060,
+    username: 'user',
+    password: 'password',
+    sip_realm: 'sip.server.com',
+    protocol: 'udp',
+    account_sip_realm: 'example.com',
+    trunk_type: 'reg',
+    sip_gateway_sid: 'gw-1'
+  };
+  const rb = new Regbot(logger, config);
+  t.equal(Regbot.configKeyFromOpts(config), rb.configKey(),
+    'static method produces same key as instance method');
+
+  // also with from_user and from_domain overrides
+  const config2 = {...config, from_user: 'alice', from_domain: 'example.org'};
+  const rb2 = new Regbot(logger, config2);
+  t.equal(Regbot.configKeyFromOpts(config2), rb2.configKey(),
+    'static method matches instance with from_user/from_domain');
+  t.end();
+});
+
 test('configKey returns different strings when config differs', (t) => {
   const base = {
     voip_carrier_sid: 'carrier-1',
@@ -103,7 +128,7 @@ test('configKey returns different strings when config differs', (t) => {
     trunk_type: 'reg',
     sip_gateway_sid: 'gw-1'
   };
-  const baseKey = new Regbot(logger, base).configKey();
+  const baseKey = Regbot.configKeyFromOpts(base);
 
   // each of these should produce a different key
   const variants = [
@@ -118,7 +143,7 @@ test('configKey returns different strings when config differs', (t) => {
     {from_domain: 'custom.com'}
   ];
   for (const override of variants) {
-    const key = new Regbot(logger, {...base, ...override}).configKey();
+    const key = Regbot.configKeyFromOpts({...base, ...override});
     t.notEqual(key, baseKey, `changing ${Object.keys(override)[0]} produces a different key`);
   }
   t.end();
