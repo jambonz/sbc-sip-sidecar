@@ -143,5 +143,33 @@ test('stopTimer clears timer without deleting gateways', (t) => {
 
   t.equal(rb.timer, null, 'timer is cleared');
   t.deepEqual(rb.addresses, ['1.2.3.4'], 'addresses are preserved');
+  t.equal(rb.retired, true, 'retired flag is set');
+  t.end();
+});
+
+test('stop sets retired flag', (t) => {
+  const rb = new Regbot(logger, {
+    voip_carrier_sid: 'carrier-1',
+    ipv4: '2.3.4.5',
+    port: 5060,
+    username: 'user',
+    password: 'password',
+    sip_realm: 'sip.server.com',
+    protocol: 'udp',
+  });
+
+  const srf = {
+    locals: {
+      realtimeDbHelpers: {
+        deleteEphemeralGateway: () => Promise.resolve()
+      }
+    }
+  };
+
+  rb.timer = setTimeout(() => {}, 60000);
+  rb.stop(srf);
+
+  t.equal(rb.retired, true, 'retired flag is set');
+  t.equal(rb.timer, null, 'timer is cleared');
   t.end();
 });
