@@ -71,3 +71,130 @@ test('Can create regbot with valid sip_realm', (t) => {
     t.fail('Regbot is not created with valid sip_realm');}
   t.end();
 });
+
+test('configKey returns identical strings for identical config', (t) => {
+  const config = {
+    voip_carrier_sid: 'carrier-1',
+    ipv4: '2.3.4.5',
+    port: 5060,
+    username: 'user',
+    password: 'password',
+    sip_realm: 'sip.server.com',
+    protocol: 'udp',
+    account_sip_realm: 'example.com',
+    trunk_type: 'reg',
+    sip_gateway_sid: 'gw-1'
+  };
+  const rb1 = new Regbot(logger, config);
+  const rb2 = new Regbot(logger, config);
+  t.equal(rb1.configKey(), rb2.configKey(), 'identical config produces identical keys');
+  t.end();
+});
+
+test('static configKeyFromOpts matches instance configKey', (t) => {
+  const config = {
+    voip_carrier_sid: 'carrier-1',
+    ipv4: '2.3.4.5',
+    port: 5060,
+    username: 'user',
+    password: 'password',
+    sip_realm: 'sip.server.com',
+    protocol: 'udp',
+    account_sip_realm: 'example.com',
+    trunk_type: 'reg',
+    sip_gateway_sid: 'gw-1'
+  };
+  const rb = new Regbot(logger, config);
+  t.equal(Regbot.configKeyFromOpts(config), rb.configKey(),
+    'static method produces same key as instance method');
+
+  // also with from_user and from_domain overrides
+  const config2 = {...config, from_user: 'alice', from_domain: 'example.org'};
+  const rb2 = new Regbot(logger, config2);
+  t.equal(Regbot.configKeyFromOpts(config2), rb2.configKey(),
+    'static method matches instance with from_user/from_domain');
+  t.end();
+});
+
+test('configKey returns different strings when config differs', (t) => {
+  const base = {
+    voip_carrier_sid: 'carrier-1',
+    ipv4: '2.3.4.5',
+    port: 5060,
+    username: 'user',
+    password: 'password',
+    sip_realm: 'sip.server.com',
+    protocol: 'udp',
+    trunk_type: 'reg',
+    sip_gateway_sid: 'gw-1'
+  };
+  const baseKey = Regbot.configKeyFromOpts(base);
+
+  // each of these should produce a different key
+  const variants = [
+    {password: 'newpass'},
+    {username: 'other'},
+    {ipv4: '9.9.9.9'},
+    {port: 5080},
+    {sip_realm: 'other.com'},
+    {voip_carrier_sid: 'carrier-2'},
+    {sip_gateway_sid: 'gw-2'},
+    {from_user: 'override'},
+    {from_domain: 'custom.com'}
+  ];
+  for (const override of variants) {
+    const key = Regbot.configKeyFromOpts({...base, ...override});
+    t.notEqual(key, baseKey, `changing ${Object.keys(override)[0]} produces a different key`);
+  }
+  t.end();
+});
+
+test('stopTimer clears timer without deleting gateways', (t) => {
+  const rb = new Regbot(logger, {
+    voip_carrier_sid: 'carrier-1',
+    ipv4: '2.3.4.5',
+    port: 5060,
+    username: 'user',
+    password: 'password',
+    sip_realm: 'sip.server.com',
+    protocol: 'udp',
+  });
+
+  // simulate a running timer
+  rb.timer = setTimeout(() => {}, 60000);
+  rb.addresses = ['1.2.3.4'];
+
+  rb.stopTimer();
+
+  t.equal(rb.timer, null, 'timer is cleared');
+  t.deepEqual(rb.addresses, ['1.2.3.4'], 'addresses are preserved');
+  t.equal(rb.retired, true, 'retired flag is set');
+  t.end();
+});
+
+test('stop sets retired flag', (t) => {
+  const rb = new Regbot(logger, {
+    voip_carrier_sid: 'carrier-1',
+    ipv4: '2.3.4.5',
+    port: 5060,
+    username: 'user',
+    password: 'password',
+    sip_realm: 'sip.server.com',
+    protocol: 'udp',
+  });
+
+  const srf = {
+    locals: {
+      realtimeDbHelpers: {
+        deleteEphemeralGateway: () => Promise.resolve()
+      }
+    }
+  };
+
+  rb.timer = setTimeout(() => {}, 60000);
+  rb.stop(srf);
+
+  t.equal(rb.retired, true, 'retired flag is set');
+  t.equal(rb.timer, null, 'timer is cleared');
+  t.end();
+});
