@@ -30,9 +30,9 @@
   "dependencies": {
     "@babel/helpers": "^7.26.10",
     "@jambonz/db-helpers": "^0.9.19",
-    "@jambonz/digest-utils": "^0.0.6",
+    "@jambonz/digest-utils": "^0.0.9",
     "@jambonz/mw-registrar": "^0.2.7",
-    "@jambonz/realtimedb-helpers": "^0.8.19",
+    "@jambonz/realtimedb-helpers": "^0.8.20",
     "@jambonz/stats-collector": "^0.1.10",
     "@jambonz/time-series": "^0.2.8",
     "debug": "^4.4.3",
