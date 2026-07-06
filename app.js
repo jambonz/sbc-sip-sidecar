@@ -44,13 +44,15 @@ const Srf = require('drachtio-srf');
 const srf = new Srf();
 const StatsCollector = require('@jambonz/stats-collector');
 const stats = new StatsCollector(logger);
-const { initLocals, rejectIpv4, checkCache, checkAccountLimits } = require('./lib/middleware');
+const { initLocals, rejectIpv4, checkCache, checkAccountLimits, enforceDeviceLimits } = require('./lib/middleware');
 const responseTime = require('drachtio-mw-response-time');
 const regParser = require('drachtio-mw-registration-parser');
 const Registrar = require('@jambonz/mw-registrar');
 const digestChallenge = require('@jambonz/digest-utils');
+const {lookupAuthCarriersForAccountAndSP} = require('./lib/db-utils');
 const debug = require('debug')('jambonz:sbc-registrar');
 const {
+  pool,
   lookupAuthHook,
   lookupAllVoipCarriers,
   lookupSipGatewaysByCarrier,
@@ -125,7 +127,8 @@ srf.locals = {
     updateSipGatewayBySid,
     lookupCarrierBySid,
     lookupSystemInformation,
-    updateCarrierBySid
+    updateCarrierBySid,
+    lookupAuthCarriersForAccountAndSP: lookupAuthCarriersForAccountAndSP.bind(null, pool, logger)
   },
   realtimeDbHelpers: {
     client,
@@ -266,7 +269,8 @@ srf.use('register', [
   regParser,
   checkCache,
   checkAccountLimits,
-  digestChallenge]);
+  digestChallenge,
+  enforceDeviceLimits]);
 
 srf.use('options', [
   initLocals
