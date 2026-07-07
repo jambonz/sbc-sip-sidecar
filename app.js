@@ -49,10 +49,8 @@ const responseTime = require('drachtio-mw-response-time');
 const regParser = require('drachtio-mw-registration-parser');
 const Registrar = require('@jambonz/mw-registrar');
 const digestChallenge = require('@jambonz/digest-utils');
-const {lookupAuthCarriersForAccountAndSP} = require('./lib/db-utils');
 const debug = require('debug')('jambonz:sbc-registrar');
 const {
-  pool,
   lookupAuthHook,
   lookupAllVoipCarriers,
   lookupSipGatewaysByCarrier,
@@ -67,7 +65,8 @@ const {
   lookupCarrierBySid,
   lookupSystemInformation,
   updateCarrierBySid,
-  lookupAccountBySid
+  lookupAccountBySid,
+  lookupAuthCarriersForAccountAndSP
 } = require('@jambonz/db-helpers')({
   host: JAMBONES_MYSQL_HOST,
   user: JAMBONES_MYSQL_USER,
@@ -128,7 +127,7 @@ srf.locals = {
     lookupCarrierBySid,
     lookupSystemInformation,
     updateCarrierBySid,
-    lookupAuthCarriersForAccountAndSP: lookupAuthCarriersForAccountAndSP.bind(null, pool, logger)
+    lookupAuthCarriersForAccountAndSP
   },
   realtimeDbHelpers: {
     client,
