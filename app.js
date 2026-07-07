@@ -144,6 +144,7 @@ const cidrs = cidrsEnv
   .split(',')
   .map((s) => s.trim());
 const matcher = new CIDRMatcher(cidrs);
+srf.locals.matcher = matcher;
 
 srf.connect({ host: DRACHTIO_HOST, port: DRACHTIO_PORT, secret: DRACHTIO_SECRET });
 srf.on('connect', (err, hp, version, localHostports) => {
