@@ -28,6 +28,25 @@ Configuration is provided via environment variables:
 |ENCRYPTION_SECRET| secret for credential encryption(JWT_SECRET is deprecated) |yes|
 |JAMBONES_REGBOT_DEFAULT_EXPIRES_INTERVAL| default expire value for outbound registration in seconds (default 3600) |no|
 |JAMBONES_REGBOT_MIN_EXPIRES_INTERVAL| minimum expire value for outbound registration in seconds (default 30) |no|
+|JAMBONES_SERVER_CONTROL| set to a truthy value ('1', 'true', 'yes') to enable server-control features such as topology discovery via OPTIONS (see below) |no|
+
+## Server control
+
+When `JAMBONES_SERVER_CONTROL` is enabled, the SBC exposes additional server-control features.
+
+### Topology discovery
+
+An OPTIONS request carrying the header `X-Jambonz-Discover: true` (from any IP, including external ones) is answered with a `200 OK` whose JSON body lists the current cluster topology read from redis:
+
+```json
+{
+  "featureServers": ["10.0.0.10:5060"],
+  "sipServers": ["1.2.3.4"],
+  "rtpServers": ["10.0.0.20"]
+}
+```
+
+`featureServers`, `sipServers` and `rtpServers` are the IPs (feature servers include the port) of the active feature servers, SIP servers and RTP servers respectively. When `JAMBONES_SERVER_CONTROL` is not set, the discovery header is ignored and OPTIONS behaves as normal.
 
 ## CLI Management
 
