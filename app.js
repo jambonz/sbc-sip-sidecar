@@ -44,7 +44,7 @@ const Srf = require('drachtio-srf');
 const srf = new Srf();
 const StatsCollector = require('@jambonz/stats-collector');
 const stats = new StatsCollector(logger);
-const { initLocals, rejectIpv4, checkCache, checkAccountLimits } = require('./lib/middleware');
+const { initLocals, rejectIpv4, checkCache, checkAccountLimits, enforceDeviceLimits } = require('./lib/middleware');
 const responseTime = require('drachtio-mw-response-time');
 const regParser = require('drachtio-mw-registration-parser');
 const Registrar = require('@jambonz/mw-registrar');
@@ -65,7 +65,8 @@ const {
   lookupCarrierBySid,
   lookupSystemInformation,
   updateCarrierBySid,
-  lookupAccountBySid
+  lookupAccountBySid,
+  lookupAuthCarriersForAccountAndSP
 } = require('@jambonz/db-helpers')({
   host: JAMBONES_MYSQL_HOST,
   user: JAMBONES_MYSQL_USER,
@@ -125,7 +126,8 @@ srf.locals = {
     updateSipGatewayBySid,
     lookupCarrierBySid,
     lookupSystemInformation,
-    updateCarrierBySid
+    updateCarrierBySid,
+    lookupAuthCarriersForAccountAndSP
   },
   realtimeDbHelpers: {
     client,
@@ -267,7 +269,8 @@ srf.use('register', [
   regParser,
   checkCache,
   checkAccountLimits,
-  digestChallenge]);
+  digestChallenge,
+  enforceDeviceLimits]);
 
 srf.use('options', [
   initLocals
