@@ -149,6 +149,54 @@ test('configKey returns different strings when config differs', (t) => {
   t.end();
 });
 
+test('getOwnContactExpires: picks our own binding when registrar returns multiple contacts', (t) => {
+  const getOwnContactExpires = Regbot._getOwnContactExpires;
+
+  // reproduces EMF capture: AoR 9955 has another device registered against it (rinstance
+  // contact with a counting-down expires). Our own contact is always granted 300.
+  const contacts = [
+    {uri: 'sip:9955@192.168.1.50:15447;rinstance=D4077321', params: {expires: '18', received: '"sip:192.168.100.186:15447"'}},
+    {uri: 'sip:9955@example.com;transport=udp', params: {expires: '300'}}
+  ];
+  t.equal(getOwnContactExpires(contacts, 'sip:9955@example.com'), 300,
+    'returns our own binding expires (300), not the other device countdown (18)');
+
+  // order should not matter
+  const reversed = [contacts[1], contacts[0]];
+  t.equal(getOwnContactExpires(reversed, 'sip:9955@example.com'), 300,
+    'matches our contact regardless of position in the header');
+
+  // host match is case-insensitive
+  t.equal(getOwnContactExpires(contacts, 'sip:9955@EXAMPLE.COM'), 300,
+    'host comparison is case-insensitive');
+
+  t.end();
+});
+
+test('getOwnContactExpires: returns undefined when our contact is absent', (t) => {
+  const getOwnContactExpires = Regbot._getOwnContactExpires;
+  const contacts = [
+    {uri: 'sip:9955@192.168.1.50:15447;rinstance=D4077321', params: {expires: '18'}}
+  ];
+  t.equal(getOwnContactExpires(contacts, 'sip:9955@example.com'), undefined,
+    'no match -> undefined so caller can fall back to Expires header / single-contact');
+
+  t.equal(getOwnContactExpires([], 'sip:9955@example.com'), undefined,
+    'empty contact list -> undefined');
+  t.end();
+});
+
+test('getOwnContactExpires: single matching contact returns its expires', (t) => {
+  const getOwnContactExpires = Regbot._getOwnContactExpires;
+  // AoR 25337 in the same capture: only our binding present
+  const contacts = [
+    {uri: 'sip:25337@example.com;transport=udp', params: {expires: '300'}}
+  ];
+  t.equal(getOwnContactExpires(contacts, 'sip:25337@example.com'), 300,
+    'single own binding resolves correctly');
+  t.end();
+});
+
 test('stopTimer clears timer without deleting gateways', (t) => {
   const rb = new Regbot(logger, {
     voip_carrier_sid: 'carrier-1',
