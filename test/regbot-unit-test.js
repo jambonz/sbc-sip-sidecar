@@ -1,4 +1,6 @@
 const test = require('tape');
+const { EventEmitter } = require('events');
+const clearModule = require('clear-module');
 const Regbot = require('../lib/regbot');
 const {
   JAMBONES_LOGLEVEL,
@@ -244,5 +246,142 @@ test('stop sets retired flag', (t) => {
 
   t.equal(rb.retired, true, 'retired flag is set');
   t.equal(rb.timer, null, 'timer is cleared');
+  t.end();
+});
+
+/* ---- re-registration / drachtio-reconnect recovery tests ---- */
+
+const REGBOT_OPTS = {
+  voip_carrier_sid: 'carrier-1',
+  ipv4: '2.3.4.5',
+  port: 5060,
+  username: 'user',
+  password: 'password',
+  sip_realm: 'sip.server.com',
+  protocol: 'udp',
+  trunk_type: 'static_ip',   // avoid the reg-trunk DNS/ephemeral-gateway path
+  sip_gateway_sid: 'gw-1'
+};
+
+// a mock srf whose request() records each REGISTER and returns a controllable fake req
+function makeSrf() {
+  const state = { requests: [], statusUpdates: [] };
+  const srf = {
+    request: (uri, opts) => {
+      const req = new EventEmitter();
+      req.get = () => '';
+      req.uri = uri;
+      req.opts = opts;
+      state.requests.push(req);
+      return Promise.resolve(req);
+    },
+    locals: {
+      sbcPublicIpAddress: { udp: '203.0.113.1:5060' },
+      localSIPDomain: 'sbc.example.com',
+      writeAlerts: () => {},
+      realtimeDbHelpers: {
+        createEphemeralGateway: () => Promise.resolve(),
+        deleteEphemeralGateway: () => Promise.resolve()
+      },
+      dbHelpers: {
+        updateVoipCarriersRegisterStatus: (sid, s) => state.statusUpdates.push(s)
+      }
+    }
+  };
+  return { srf, state };
+}
+
+const ok200 = { status: 200, reason: 'OK', has: () => false, get: () => undefined, getParsedHeader: () => [] };
+const tick = () => new Promise((resolve) => setImmediate(resolve));
+
+test('reregister sends a fresh REGISTER and re-arms the timer on 200 OK', async(t) => {
+  const { srf, state } = makeSrf();
+  const rb = new Regbot(logger, REGBOT_OPTS);
+  // pretend a stale re-register timer is pending from before the drachtio restart
+  rb.timer = setTimeout(() => t.fail('stale timer should have been cleared'), 600000);
+  const prevEpoch = rb.epoch;
+
+  rb.reregister(srf);
+  await tick();
+
+  t.equal(state.requests.length, 1, 'a REGISTER was sent');
+  t.ok(rb.watchdog, 'response watchdog is armed while awaiting the response');
+  t.ok(rb.epoch > prevEpoch, 'attempt epoch advanced');
+
+  state.requests[0].emit('response', ok200);
+  await tick();
+
+  t.equal(rb.status, 'registered', 'status is registered after 200 OK');
+  t.equal(rb.watchdog, null, 'watchdog is cleared once the response arrives');
+  t.ok(rb.timer, 'next re-register timer is armed');
+  clearTimeout(rb.timer);
+  t.end();
+});
+
+test('reregister on a retired regbot is a no-op', async(t) => {
+  const { srf, state } = makeSrf();
+  const rb = new Regbot(logger, REGBOT_OPTS);
+  rb.retired = true;
+
+  rb.reregister(srf);
+  await tick();
+
+  t.equal(state.requests.length, 0, 'no REGISTER is sent for a retired regbot');
+  t.notOk(rb.timer, 'no timer is armed');
+  t.end();
+});
+
+test('a stale REGISTER response (superseded by a newer attempt) is ignored', async(t) => {
+  const { srf, state } = makeSrf();
+  const rb = new Regbot(logger, REGBOT_OPTS);
+
+  rb.register(srf);            // attempt 1
+  await tick();
+  const req1 = state.requests[0];
+
+  rb.reregister(srf);          // attempt 2 supersedes attempt 1
+  await tick();
+  const req2 = state.requests[1];
+  t.ok(req2 && req2 !== req1, 'a second REGISTER was sent by reregister');
+
+  // a late response to attempt 1 must not be acted on
+  req1.emit('response', ok200);
+  await tick();
+  t.notEqual(rb.status, 'registered', 'stale response did not mark the regbot registered');
+  t.ok(rb.watchdog, 'the current attempt watchdog is still armed after the stale response');
+
+  // the real response to attempt 2 is processed normally
+  req2.emit('response', ok200);
+  await tick();
+  t.equal(rb.status, 'registered', 'current attempt response is processed');
+  t.equal(rb.watchdog, null, 'watchdog cleared by the current response');
+  clearTimeout(rb.timer);
+  t.end();
+});
+
+test('watchdog re-sends REGISTER when no SIP response arrives', async(t) => {
+  // reload regbot with a short response timeout so the watchdog fires quickly
+  process.env.JAMBONES_REGBOT_RESPONSE_TIMEOUT = '40';
+  clearModule('../lib/config');
+  clearModule('../lib/regbot');
+  const RegbotFresh = require('../lib/regbot');
+
+  const { srf, state } = makeSrf();
+  const rb = new RegbotFresh(logger, REGBOT_OPTS);
+
+  rb.register(srf);           // no response is ever emitted
+  await tick();
+  t.equal(state.requests.length, 1, 'first REGISTER sent');
+
+  await new Promise((resolve) => setTimeout(resolve, 120));
+  t.ok(state.requests.length >= 2, 'watchdog retried the REGISTER when no response arrived');
+
+  // stop further retries and restore the module cache for later suites
+  rb.retired = true;
+  clearTimeout(rb.timer);
+  clearTimeout(rb.watchdog);
+  clearModule('../lib/config');
+  clearModule('../lib/regbot');
+  delete process.env.JAMBONES_REGBOT_RESPONSE_TIMEOUT;
   t.end();
 });
