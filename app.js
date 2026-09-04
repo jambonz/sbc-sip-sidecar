@@ -149,8 +149,12 @@ const matcher = new CIDRMatcher(cidrs);
 srf.locals.matcher = matcher;
 
 srf.connect({ host: DRACHTIO_HOST, port: DRACHTIO_PORT, secret: DRACHTIO_SECRET });
+let drachtioConnected = false;
 srf.on('connect', (err, hp, version, localHostports) => {
   if (err) return logger.error({ err }, 'Error connecting to drachtio server');
+  // drachtio-srf re-emits 'connect' on every reconnect; distinguish a reconnect from first connect
+  const isReconnect = drachtioConnected;
+  drachtioConnected = true;
   logger.info(`connected to drachtio listening on ${hp}, local hostports: ${localHostports}`);
 
   if (localHostports) {
@@ -244,6 +248,15 @@ srf.on('connect', (err, hp, version, localHostports) => {
   require('./lib/sip-trunk-register')(logger, srf);
   // Start Options bot
   require('./lib/sip-trunk-options-ping')(logger, srf);
+
+  /* on a reconnect after a drachtio restart, the initial startup above is a no-op
+     (guarded by `initialized`), so force the surviving regbots to re-register */
+  if (isReconnect) {
+    logger.info('drachtio reconnected — resyncing regbots');
+    // eslint-disable-next-line promise/no-promise-in-callback
+    require('./lib/sip-trunk-register').resync(logger, srf)
+      .catch((e) => logger.error({ err: e }, 'regbot resync after reconnect failed'));
+  }
 });
 
 if (NODE_ENV === 'test') {
