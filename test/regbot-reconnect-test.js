@@ -20,6 +20,7 @@ const logger = require('pino')(opts);
  */
 
 const tick = () => new Promise((resolve) => setImmediate(resolve));
+const ok200 = { status: 200, reason: 'OK', has: () => false, get: () => undefined, getParsedHeader: () => [] };
 
 // a mock srf that records each REGISTER and serves one carrier/gateway from the db-helpers
 function makeSrf({ active }) {
@@ -95,10 +96,34 @@ test('resync rebuilds regbots when active but the array is empty (post-clear rec
   await tick();
   t.equal(state.requests.length, 1, 'a regbot was rebuilt and sent a REGISTER');
 
-  // a subsequent reconnect finds a non-empty array -> re-registers the existing regbot
+  reg._resetForTest();
+  t.end();
+});
+
+test('resync re-registers only broken regbots and leaves healthy ones alone', async(t) => {
+  clearModule('../lib/sip-trunk-register');
+  const reg = require('../lib/sip-trunk-register');
+  const { srf, state } = makeSrf({ active: true });
+
+  // build the bot; with no response yet it is unregistered (a REGISTER in flight) => broken
   await reg.resync(logger, srf);
   await tick();
-  t.ok(state.requests.length >= 2, 'resync re-registered the existing regbot on the next reconnect');
+  await tick();
+  t.equal(state.requests.length, 1, 'a regbot was rebuilt and sent a REGISTER');
+
+  // reconnect while still unregistered -> it is re-driven
+  await reg.resync(logger, srf);
+  await tick();
+  t.equal(state.requests.length, 2, 'broken (unregistered) regbot was re-registered on reconnect');
+
+  // let it register successfully
+  state.requests[1].emit('response', ok200);
+  await tick();
+
+  // reconnect again: a healthy registered bot keeps its binding, so it is skipped
+  await reg.resync(logger, srf);
+  await tick();
+  t.equal(state.requests.length, 2, 'healthy registered regbot is not re-registered');
 
   reg._resetForTest();
   t.end();

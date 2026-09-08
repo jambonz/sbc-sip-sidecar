@@ -359,8 +359,10 @@ test('a stale REGISTER response (superseded by a newer attempt) is ignored', asy
   t.end();
 });
 
-test('watchdog re-sends REGISTER when no SIP response arrives', async(t) => {
-  // reload regbot with a short response timeout so the watchdog fires quickly
+test('watchdog marks fail and backs off when no SIP response arrives', async(t) => {
+  // reload regbot with a short response timeout so the watchdog fires quickly.
+  // NB: this leaves the require cache holding a fresh Regbot class; harmless here since
+  // nothing compares class identity, but restore the cache at the end for later suites.
   process.env.JAMBONES_REGBOT_RESPONSE_TIMEOUT = '40';
   clearModule('../lib/config');
   clearModule('../lib/regbot');
@@ -372,11 +374,20 @@ test('watchdog re-sends REGISTER when no SIP response arrives', async(t) => {
   rb.register(srf);           // no response is ever emitted
   await tick();
   t.equal(state.requests.length, 1, 'first REGISTER sent');
+  t.ok(rb.watchdog, 'watchdog armed while awaiting response');
 
-  await new Promise((resolve) => setTimeout(resolve, 120));
-  t.ok(state.requests.length >= 2, 'watchdog retried the REGISTER when no response arrived');
+  await new Promise((resolve) => setTimeout(resolve, 90));
+  t.equal(state.requests.length, 1, 'watchdog does NOT re-send inline (no REGISTER storm)');
+  t.equal(rb.status, 'fail', 'watchdog marked the regbot failed');
+  t.ok(rb.timer, 'a retry timer (FAILURE_RETRY_INTERVAL backoff) was scheduled');
+  t.ok(state.statusUpdates.length >= 1, 'a fail status was written to the db');
 
-  // stop further retries and restore the module cache for later suites
+  // a late response for the timed-out attempt is ignored (epoch was bumped)
+  state.requests[0].emit('response', ok200);
+  await tick();
+  t.equal(rb.status, 'fail', 'late response after the watchdog fired is ignored');
+
+  // stop the retry and restore the module cache for later suites
   rb.retired = true;
   clearTimeout(rb.timer);
   clearTimeout(rb.watchdog);
