@@ -3,6 +3,7 @@ require('./create-test-db');
 require('./regbot-tests');
 require('./regbot-unit-test');
 require('./regbot-concurrent-rebuild-test');
+require('./regbot-reconnect-test');
 require('./sip-register-tests');
 require('./sip-options-tests');
 require('./cli-tests');
