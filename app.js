@@ -51,6 +51,7 @@ const Registrar = require('@jambonz/mw-registrar');
 const digestChallenge = require('@jambonz/digest-utils');
 const debug = require('debug')('jambonz:sbc-registrar');
 const {
+  pool,
   lookupAuthHook,
   lookupAllVoipCarriers,
   lookupSipGatewaysByCarrier,
@@ -111,6 +112,7 @@ srf.locals = {
   ...srf.locals,
   logger,
   stats,
+  pool,
   addToSet, removeFromSet, isMemberOfSet, retrieveSet,
   registrar: new Registrar(logger, client),
   dbHelpers: {
@@ -155,7 +157,8 @@ srf.on('connect', (err, hp, version, localHostports) => {
   // drachtio-srf re-emits 'connect' on every reconnect; distinguish a reconnect from first connect
   const isReconnect = drachtioConnected;
   drachtioConnected = true;
-  logger.info(`connected to drachtio listening on ${hp}, local hostports: ${localHostports}`);
+  logger.info(`connected to drachtio ${version} listening on ${hp}, local hostports: ${localHostports}`);
+  srf.locals.drachtioVersion = version || null;
 
   if (localHostports) {
     const locals = localHostports.split(',');
