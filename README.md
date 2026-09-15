@@ -40,13 +40,15 @@ An OPTIONS request carrying the header `X-Jambonz-Discover: true` (from any IP, 
 
 ```json
 {
+  "jambonzVersion": "v11.1.4",
+  "drachtioVersion": "v0.9.3",
   "featureServers": ["10.0.0.10:5060"],
   "sipServers": ["1.2.3.4"],
   "rtpServers": ["10.0.0.20"]
 }
 ```
 
-`featureServers`, `sipServers` and `rtpServers` are the IPs (feature servers include the port) of the active feature servers, SIP servers and RTP servers respectively. When `JAMBONES_SERVER_CONTROL` is not set, the discovery header is ignored and OPTIONS behaves as normal.
+`jambonzVersion` is read from the `schema_version` table in the database and `drachtioVersion` is the version reported by the drachtio server on connect; either is `null` if it could not be determined. `featureServers`, `sipServers` and `rtpServers` are the IPs (feature servers include the port) of the active feature servers, SIP servers and RTP servers respectively. When `JAMBONES_SERVER_CONTROL` is not set, the discovery header is ignored and OPTIONS behaves as normal.
 
 ## CLI Management
 
