@@ -6,6 +6,7 @@ require('./regbot-concurrent-rebuild-test');
 require('./regbot-reconnect-test');
 require('./sip-register-tests');
 require('./sip-options-tests');
+require('./options-shared-expiry-test');
 require('./cli-tests');
 require('./docker_stop');
 require('./utils');
