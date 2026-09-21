@@ -152,6 +152,7 @@ srf.locals.matcher = matcher;
 
 srf.connect({ host: DRACHTIO_HOST, port: DRACHTIO_PORT, secret: DRACHTIO_SECRET });
 let drachtioConnected = false;
+let sbcKeepAliveTimer;
 srf.on('connect', (err, hp, version, localHostports) => {
   if (err) return logger.error({ err }, 'Error connecting to drachtio server');
   // drachtio-srf re-emits 'connect' on every reconnect; distinguish a reconnect from first connect
@@ -233,19 +234,22 @@ srf.on('connect', (err, hp, version, localHostports) => {
 
   logger.info({ips: [...mapOfPublicAddresses.entries()]}, 'drachtio sip public contacts');
 
-  mapOfPublicAddresses.forEach((addr) => {
-    addSbcAddress(addr.ipv4, addr.port, addr.tls_port, addr.wss_port);
-    // keep alive for this SBC
-    setTimeout(() => {
-      addSbcAddress(addr.ipv4, addr.port, addr.tls_port, addr.wss_port);
-    }, interval);
-  });
-
-  // first start up, clean sbc address
-  cleanSbcAddresses();
-  setTimeout(() => {
-    cleanSbcAddresses();
-  }, interval);
+  /* Register this SBC's public addresses and keep them alive.
+     addSbcAddress() refreshes the row's last_updated, and cleanSbcAddresses() (run here and by
+     every other sidecar in the cluster) deletes rows older than DEAD_SBC_IN_SECOND, so the
+     refresh MUST recur for as long as this process lives.  We reap stale rows only after
+     refreshing our own, so the cleaner can never run ahead of this SBC's first keepalive. */
+  const sbcKeepAlive = async() => {
+    for (const addr of mapOfPublicAddresses.values()) {
+      await addSbcAddress(addr.ipv4, addr.port, addr.tls_port, addr.wss_port);
+    }
+    await cleanSbcAddresses();
+  };
+  sbcKeepAlive();
+  // drachtio re-emits 'connect' on reconnect (possibly with different contacts): replace, don't stack
+  if (sbcKeepAliveTimer) clearInterval(sbcKeepAliveTimer);
+  sbcKeepAliveTimer = setInterval(sbcKeepAlive, interval);
+  sbcKeepAliveTimer.unref();
 
   /* start regbot */
   require('./lib/sip-trunk-register')(logger, srf);
