@@ -4,6 +4,7 @@ require('./regbot-tests');
 require('./regbot-unit-test');
 require('./regbot-concurrent-rebuild-test');
 require('./regbot-reconnect-test');
+require('./regbot-handoff-test');
 require('./sip-register-tests');
 require('./sip-options-tests');
 require('./options-shared-expiry-test');

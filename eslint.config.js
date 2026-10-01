@@ -25,6 +25,8 @@ module.exports = [
         clearInterval: 'readonly',
         setImmediate: 'readonly',
         clearImmediate: 'readonly',
+        fetch: 'readonly',
+        AbortSignal: 'readonly',
         // DTrace/LTTNG globals
         DTRACE_HTTP_CLIENT_REQUEST: false,
         LTTNG_HTTP_CLIENT_REQUEST: false,

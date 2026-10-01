@@ -28,7 +28,14 @@ Configuration is provided via environment variables:
 |ENCRYPTION_SECRET| secret for credential encryption(JWT_SECRET is deprecated) |yes|
 |JAMBONES_REGBOT_DEFAULT_EXPIRES_INTERVAL| default expire value for outbound registration in seconds (default 3600) |no|
 |JAMBONES_REGBOT_MIN_EXPIRES_INTERVAL| minimum expire value for outbound registration in seconds (default 30) |no|
+|AWS_LIFECYCLE_DRAIN| set to a truthy value ('1', 'true', 'yes') on AWS Auto Scaling deployments: when IMDS reports this instance is being scaled in, the SBC hands the outbound-registration role to another SBC and removes its own IP-based bindings (see below) |no|
 |JAMBONES_SERVER_CONTROL| set to a truthy value ('1', 'true', 'yes') to enable server-control features such as topology discovery via OPTIONS (see below) |no|
+
+## Outbound registration across SBCs
+
+One SBC in a cluster at a time sends REGISTERs for carriers that require registration; it holds a lease in redis, and another SBC takes over if the lease lapses. The Call-ID of each registration is `<sip_gateway_sid>@<sending SBC public IP>`: stable across refreshes and restarts of one SBC, but new when the role moves to another SBC, so a registrar sees a new registration rather than a refresh from a different address. The `register_status` of a carrier records the sending SBC in `sbcAddress`.
+
+With `AWS_LIFECYCLE_DRAIN` enabled, an SBC that is being scaled in gives up the lease as soon as the scale-in starts, instead of after the instance is gone. Once another SBC has claimed it, the draining SBC sends un-REGISTERs (Expires: 0) for bindings whose Contact carries its own IP (`register_public_ip_in_contact`); other bindings use the same Contact on both SBCs and have already been replaced by the new SBC's registrations.
 
 ## Server control
 
