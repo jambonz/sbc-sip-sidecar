@@ -98,6 +98,7 @@ const {
   addKey,
   addKeyNx,
   retrieveKey,
+  deleteKey,
   addToSet,
   removeFromSet,
   isMemberOfSet,
@@ -136,6 +137,7 @@ srf.locals = {
     addKey,
     addKeyNx,
     retrieveKey,
+    deleteKey,
     retrieveSet,
     createEphemeralGateway,
     deleteEphemeralGateway

@@ -396,3 +396,54 @@ test('watchdog marks fail and backs off when no SIP response arrives', async(t) 
   delete process.env.JAMBONES_REGBOT_RESPONSE_TIMEOUT;
   t.end();
 });
+
+/* ---- per-SBC Call-ID and un-REGISTER ---- */
+
+test('Call-ID is per gateway and per sending SBC, and register status records the SBC', async(t) => {
+  const a = makeSrf();
+  const b = makeSrf();
+  b.srf.locals.sbcPublicIpAddress = { udp: '198.51.100.7:5060' };
+
+  const rbA = new Regbot(logger, REGBOT_OPTS);
+  rbA.register(a.srf);
+  rbA.reregister(a.srf);
+  const rbB = new Regbot(logger, REGBOT_OPTS);
+  rbB.register(b.srf);
+  await tick();
+
+  const [first, refresh] = a.state.requests.map((r) => r.opts.headers['Call-ID']);
+  t.equal(first, 'gw-1@203.0.113.1', 'Call-ID is sip_gateway_sid@sbc-public-ip');
+  t.equal(refresh, first, 'Call-ID is stable across refreshes from the same SBC');
+  t.equal(b.state.requests[0].opts.headers['Call-ID'], 'gw-1@198.51.100.7',
+    'another SBC registering the same gateway uses a different Call-ID');
+
+  a.state.requests[1].emit('response', ok200);
+  await tick();
+  t.equal(JSON.parse(a.state.statusUpdates[0]).sbcAddress, '203.0.113.1:5060',
+    'register status records the sending SBC address');
+
+  [rbA, rbB].forEach((rb) => { rb.retired = true; clearTimeout(rb.timer); clearTimeout(rb.watchdog); });
+  t.end();
+});
+
+test('unregister removes a binding whose Contact carries our address', async(t) => {
+  const { srf, state } = makeSrf();
+  const rb = new Regbot(logger, {...REGBOT_OPTS, use_public_ip_in_contact: true});
+
+  t.equal(await rb.unregister(srf), true, 'un-REGISTER sent');
+  const {headers} = state.requests[0].opts;
+  t.equal(headers['Call-ID'], 'gw-1@203.0.113.1', 'same Call-ID as our registrations');
+  t.equal(headers['Expires'], 0, 'Expires: 0');
+  t.equal(headers['Contact'], '<sip:user@203.0.113.1:5060;transport=udp>;expires=0',
+    'the Contact we registered, with expires=0');
+  t.end();
+});
+
+test('unregister is a no-op when the Contact is shared with the other SBC', async(t) => {
+  const { srf, state } = makeSrf();
+  const rb = new Regbot(logger, REGBOT_OPTS);
+
+  t.equal(await rb.unregister(srf), false, 'nothing to remove');
+  t.equal(state.requests.length, 0, 'no un-REGISTER sent');
+  t.end();
+});
