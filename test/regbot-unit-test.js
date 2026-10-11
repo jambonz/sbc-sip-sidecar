@@ -277,6 +277,7 @@ function makeSrf() {
     },
     locals: {
       sbcPublicIpAddress: { udp: '203.0.113.1:5060' },
+      privateSipAddress: '10.0.0.1:5060',
       localSIPDomain: 'sbc.example.com',
       writeAlerts: () => {},
       realtimeDbHelpers: {
@@ -403,6 +404,7 @@ test('Call-ID is per gateway and per sending SBC, and register status records th
   const a = makeSrf();
   const b = makeSrf();
   b.srf.locals.sbcPublicIpAddress = { udp: '198.51.100.7:5060' };
+  b.srf.locals.privateSipAddress = '10.0.0.2:5060';
 
   const rbA = new Regbot(logger, REGBOT_OPTS);
   rbA.register(a.srf);
@@ -419,8 +421,13 @@ test('Call-ID is per gateway and per sending SBC, and register status records th
 
   a.state.requests[1].emit('response', ok200);
   await tick();
-  t.equal(JSON.parse(a.state.statusUpdates[0]).sbcAddress, '203.0.113.1:5060',
-    'register status records the sending SBC address');
+  const status = JSON.parse(a.state.statusUpdates[0]);
+  t.equal(status.sbcAddress, '203.0.113.1:5060', 'register status records the sending SBC address');
+  t.equal(status.privateSbcAddress, '10.0.0.1:5060', 'register status records the sending SBC private address');
+  b.state.requests[0].emit('response', ok200);
+  await tick();
+  t.equal(JSON.parse(b.state.statusUpdates[0]).privateSbcAddress, '10.0.0.2:5060',
+    'each SBC records its own private address');
 
   [rbA, rbB].forEach((rb) => { rb.retired = true; clearTimeout(rb.timer); clearTimeout(rb.watchdog); });
   t.end();
