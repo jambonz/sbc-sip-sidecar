@@ -4,7 +4,7 @@
   "description": "SBC SIP sidecar app (handles REGISTER and OPTIONS)",
   "main": "app.js",
   "engines": {
-    "node": ">= 20.0.0"
+    "node": ">= 24.22.1"
   },
   "keywords": [
     "sip",
