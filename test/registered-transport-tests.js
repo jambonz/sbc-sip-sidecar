@@ -24,19 +24,19 @@ const flows = [
     transport: 'udp',
     registrar: `sip:${SBC}:5060`,
     contact: `sip:john@${CLIENT}:5060`,
-    proxy: new RegExp(`^sip:${CLIENT.replace(/\./g, '\\.')}:5060$`)
+    proxy: /^sip:172\.39\.0\.70:5060$/
   },
   {
     transport: 'tcp',
     registrar: `sip:${SBC}:5060;transport=tcp`,
     contact: `sip:john@${CLIENT}:5060;transport=tcp`,
-    proxy: new RegExp(`^sip:${CLIENT.replace(/\./g, '\\.')}:\\d+;transport=tcp$`)
+    proxy: /^sip:172\.39\.0\.70:\d+;transport=tcp$/
   },
   {
     transport: 'tls',
     registrar: `sip:${SBC}:5061;transport=tls`,
     contact: `sip:john@${CLIENT}:5061;transport=tls`,
-    proxy: new RegExp(`^sip:${CLIENT.replace(/\./g, '\\.')}:\\d+;transport=tls$`)
+    proxy: /^sip:172\.39\.0\.70:\d+;transport=tls$/
   }
 ];
 
