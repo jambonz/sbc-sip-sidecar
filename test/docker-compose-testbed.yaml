@@ -24,15 +24,35 @@ services:
         ipv4_address: 172.39.0.2
   sbc:
     image: drachtio/drachtio-server:latest
-    command: drachtio --contact "sip:*;transport=udp" --loglevel debug --sofia-loglevel 9
+    command: >-
+      drachtio --contact "sip:*;transport=udp,tcp" --contact "sips:*:5061;transport=tls"
+      --key-file /tls/server.key --cert-file /tls/server.crt --chain-file /tls/server.crt
+      --loglevel debug --sofia-loglevel 9
     ports:
       - "9022:9022/tcp"
+    volumes:
+      - ./tls:/tls
     networks:
       sbc-sip-sidecar:
         ipv4_address: 172.39.0.10
     depends_on:
       mysql:
         condition: service_healthy
+
+  # a SIP client that registers with the sbc over udp, tcp and tls
+  client:
+    image: drachtio/drachtio-server:latest
+    command: >-
+      drachtio --contact "sip:*;transport=udp,tcp" --contact "sips:*:5061;transport=tls"
+      --key-file /tls/server.key --cert-file /tls/server.crt --chain-file /tls/server.crt
+      --loglevel debug --sofia-loglevel 9
+    ports:
+      - "9023:9022/tcp"
+    volumes:
+      - ./tls:/tls
+    networks:
+      sbc-sip-sidecar:
+        ipv4_address: 172.39.0.70
 
   auth-server:
     image: jambonz/customer-auth-server:latest
