@@ -10,6 +10,7 @@ require('./sip-register-tests');
 require('./registered-transport-tests');
 require('./sip-options-tests');
 require('./options-shared-expiry-test');
+require('./options-fs-version-test');
 require('./cli-tests');
 require('./docker_stop');
 require('./utils');
